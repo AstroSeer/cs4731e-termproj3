@@ -30,4 +30,6 @@ function main() {
     program = initShaders(gl, "vshader", "fshader");
     gl.useProgram(program);
 
+    var aaa = loadFile("https://web.cs.wpi.edu/~jmcuneo/cs4731/project3_1/", "OBJ");
+    console.log(aaa);
 }
