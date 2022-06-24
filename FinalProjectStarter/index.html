@@ -8,19 +8,23 @@
             uniform mat4 modelViewMatrix;
             uniform mat4 modelMatrix;
             uniform mat4 projectionMatrix;
-            uniform vec4 lightPosition;
             varying vec4 fColor;
+            uniform vec4 lightPosition;
             varying vec3 L, N, V;
             attribute vec4 vNormal;
-            
-            void main() {
 
+            void main() {
+                gl_Position = projectionMatrix * modelViewMatrix * vPosition;
             }
         </script>
 
         <script id="fshader" type="x-shader/x-fragment">
-            void main() {
+            precision mediump float;
 
+            varying vec4 fColor;
+
+            void main() {
+                gl_FragColor = (fColor);
             }
         </script>
 
