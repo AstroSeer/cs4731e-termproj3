@@ -9,11 +9,21 @@ let faceVerts = []; // Indices into vertices array for this face
 let faceNorms = []; // Indices into normal array for this face
 let faceTexs = []; // Indices into UVs array for this face
 
+var isBusy = false;
+
 let roadFaceVertices = []; 
 let roadFaceNormals = [];
-let roadFaceUVs = [];       
+let roadFaceUVs = [];    
 
-var isLoaded = false;
+let carFaceVertices = []; 
+let carFaceNormals = [];
+let carFaceUVs = []; 
+
+let bunnyFaceVertices = []; 
+let bunnyFaceNormals = [];
+let bunnyFaceUVs = [];    
+
+var isLoaded = 0;
 
 let currMaterial = null;    // Current material in use
 let textureURL = null;      // URL of texture file to use
@@ -30,7 +40,7 @@ let specularMap = new Map();
  * @param fileType The type (OBJ or MTL) of the file being loaded.
  */
 function loadFile(fileURL, fileType, identity) {
-
+    isBusy = true;
     // Asynchronously load file
     let objReq = new XMLHttpRequest();
     objReq.open('GET', fileURL);
@@ -48,10 +58,9 @@ function loadFile(fileURL, fileType, identity) {
                 default:
                     break;
             }
-            if(identity == 1) {
-                isLoaded = true;
-                console.log(isLoaded);
-            }
+            isLoaded = isLoaded + 1;
+            isBusy = false;
+            console.log(isLoaded);
         }
     }
     objReq.send(null);
@@ -104,12 +113,25 @@ function parseObjFile(objFile, identity) {
                 roadFaceNormals.push(faceNorms[0], faceNorms[i], faceNorms[i + 1]);
                 roadFaceUVs.push(faceTexs[0], faceTexs[i], faceTexs[i + 1]);
             }
+            if(identity == 2) {
+                carFaceVertices.push(faceVerts[0], faceVerts[i], faceVerts[i + 1]);
+                carFaceNormals.push(faceNorms[0], faceNorms[i], faceNorms[i + 1]);
+                carFaceUVs.push(faceTexs[0], faceTexs[i], faceTexs[i + 1]);
+            }
+            if(identity == 3) {
+                bunnyFaceVertices.push(faceVerts[0], faceVerts[i], faceVerts[i + 1]);
+                bunnyFaceNormals.push(faceNorms[0], faceNorms[i], faceNorms[i + 1]);
+                carFaceUVs.push(faceTexs[0], faceTexs[i], faceTexs[i + 1]);
+            }
         }
 
         faceVerts = []; // Indices into vertices array for this face
         faceNorms = []; // Indices into normal array for this face
-        faceTexs  = []; // Indices into UVs array for this face
+        faceTexs  = []; // Indices into UVs array for this face 
     }
+    vertices = [];
+    normals = [];
+    uvs = [];
 }
 
 
