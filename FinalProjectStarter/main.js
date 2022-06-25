@@ -3,19 +3,25 @@ let canvas;
 let gl;
 let program;
 
-var modelViewMatrixLoc;
+var viewMatrixLoc;
 var projectionMatrixLoc;
-var modelViewMatrix;
+var viewMatrix;
 var projectionMatrix;
 var fColor;
 
+var colors = [];
 var black = vec4(0.0, 0.0, 0.0, 1.0);
 var red = vec4(1.0, 0.0, 0.0, 1.0);
 var green = vec4(0.0, 1.0, 0.0, 1.0);
 var blue = vec4(0.0, 0.0, 1.0, 1.0);
 var pink = vec4(1.0, 0.0, 1.0, 1.0);
+colors.push(black);
+colors.push(red);
+colors.push(green);
+colors.push(blue);
+colors.push(pink);
 
-var loadCap = 5;
+var loadCap = 4;
 var keepRender = false;
 
 var fov = 60;
@@ -56,100 +62,147 @@ function main() {
 
     aspect = canvas.width/canvas.height;
 
-    //gl.enable(gl.DEPTH_TEST);
+    gl.enable(gl.DEPTH_TEST);
+    gl.enable(gl.CULL_FACE);
     render();
 }
 
-function setRoad() {
-    //console.log(roadFaceVertices);
-    var rBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, rBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, flatten(roadFaceVertices), gl.STATIC_DRAW);
+// function setRoad() {
+//     var transformMatrix = translate(-1, 0, 0);
+//     var modelMatrix = gl.getUniformLocation(program, "modelMatrix");
+//     gl.uniformMatrix4fv(modelMatrix, false, flatten(transformMatrix));
 
-    var rPosition = gl.getAttribLocation( program, "vPosition");
-    gl.vertexAttribPointer(rPosition, 4, gl.FLOAT, false, 0, 0);
-    gl.enableVertexAttribArray(rPosition);
+//     var rBuffer = gl.createBuffer();
+//     gl.bindBuffer(gl.ARRAY_BUFFER, rBuffer);
+//     gl.bufferData(gl.ARRAY_BUFFER, flatten(roadFaceVertices), gl.STATIC_DRAW);
 
-    fColor = gl.getUniformLocation(program, "fColor");
-    gl.uniform4fv(fColor, flatten(black));
-    gl.drawArrays(gl.TRIANGLE_FAN, 0, flatten(roadFaceVertices).length);
-}
+//     var rPosition = gl.getAttribLocation( program, "vPosition");
+//     gl.vertexAttribPointer(rPosition, 4, gl.FLOAT, false, 0, 0);
+//     gl.enableVertexAttribArray(rPosition);
 
-function setCar() {
-    var rBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, rBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, flatten(carFaceVertices), gl.STATIC_DRAW);
+//     vColor = gl.getUniformLocation(program, "fColor");
+//     gl.uniform4fv(vColor, flatten(black));
+//     gl.drawArrays(gl.TRIANGLES, 0, flatten(roadFaceVertices).length);
+// }
 
-    var rPosition = gl.getAttribLocation( program, "vPosition");
-    gl.vertexAttribPointer(rPosition, 4, gl.FLOAT, false, 0, 0);
-    gl.enableVertexAttribArray(rPosition);
+// function setCar() {
+//     var transformMatrix = translate(0, 0, 0);
+//     var modelMatrix = gl.getUniformLocation(program, "modelMatrix");
+//     gl.uniformMatrix4fv(modelMatrix, false, flatten(transformMatrix));
 
-    fColor = gl.getUniformLocation(program, "fColor");
-    gl.uniform4fv(fColor, flatten(blue));
-    gl.drawArrays(gl.TRIANGLE_FAN, 0, flatten(carFaceVertices).length);
-}
+//     var rBuffer = gl.createBuffer();
+//     gl.bindBuffer(gl.ARRAY_BUFFER, rBuffer);
+//     gl.bufferData(gl.ARRAY_BUFFER, flatten(carFaceVertices), gl.STATIC_DRAW);
 
-function setBunny() {
-    var rBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, rBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, flatten(bunnyFaceVertices), gl.STATIC_DRAW);
+//     var rPosition = gl.getAttribLocation( program, "vPosition");
+//     gl.vertexAttribPointer(rPosition, 4, gl.FLOAT, false, 0, 0);
+//     gl.enableVertexAttribArray(rPosition);
 
-    var rPosition = gl.getAttribLocation( program, "vPosition");
-    gl.vertexAttribPointer(rPosition, 4, gl.FLOAT, false, 0, 0);
-    gl.enableVertexAttribArray(rPosition);
+//     vColor = gl.getUniformLocation(program, "fColor");
+//     gl.uniform4fv(vColor, flatten(blue));
+//     gl.drawArrays(gl.TRIANGLES, 0, flatten(carFaceVertices).length);
+// }
 
-    fColor = gl.getUniformLocation(program, "fColor");
-    gl.uniform4fv(fColor, flatten(green));
-    gl.drawArrays(gl.TRIANGLE_FAN, 0, flatten(bunnyFaceVertices).length);
-}
+// function setBunny() {
+//     var transformMatrix = translate(3, 0, 0);
+//     var modelMatrix = gl.getUniformLocation(program, "modelMatrix");
+//     gl.uniformMatrix4fv(modelMatrix, false, flatten(transformMatrix));
 
-function setStop() {
-    var rBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, rBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, flatten(stopsignFaceVertices), gl.STATIC_DRAW);
+//     var rBuffer = gl.createBuffer();
+//     gl.bindBuffer(gl.ARRAY_BUFFER, rBuffer);
+//     gl.bufferData(gl.ARRAY_BUFFER, flatten(bunnyFaceVertices), gl.STATIC_DRAW);
 
-    var rPosition = gl.getAttribLocation( program, "vPosition");
-    gl.vertexAttribPointer(rPosition, 4, gl.FLOAT, false, 0, 0);
-    gl.enableVertexAttribArray(rPosition);
+//     var rPosition = gl.getAttribLocation( program, "vPosition");
 
-    fColor = gl.getUniformLocation(program, "fColor");
-    gl.uniform4fv(fColor, flatten(red));
-    gl.drawArrays(gl.TRIANGLE_FAN, 0, flatten(stopsignFaceVertices).length);
-}
+//     gl.vertexAttribPointer(rPosition, 4, gl.FLOAT, false, 0, 0);
+//     gl.enableVertexAttribArray(rPosition);
+
+//     vColor = gl.getUniformLocation(program, "fColor");
+//     gl.uniform4fv(vColor, flatten(green));
+//     gl.drawArrays(gl.TRIANGLES, 0, flatten(bunnyFaceVertices).length);
+// }
+
+// function setStop() {
+//     var transformMatrix = translate(5, 0, 0);
+//     var modelMatrix = gl.getUniformLocation(program, "modelMatrix");
+//     gl.uniformMatrix4fv(modelMatrix, false, flatten(transformMatrix));
+
+//     var rBuffer = gl.createBuffer();
+//     gl.bindBuffer(gl.ARRAY_BUFFER, rBuffer);
+//     gl.bufferData(gl.ARRAY_BUFFER, flatten(stopsignFaceVertices), gl.STATIC_DRAW);
+
+//     var rPosition = gl.getAttribLocation( program, "vPosition");
+//     gl.vertexAttribPointer(rPosition, 4, gl.FLOAT, false, 0, 0);
+//     gl.enableVertexAttribArray(rPosition);
+
+//     vColor = gl.getUniformLocation(program, "fColor");
+//     gl.uniform4fv(vColor, flatten(red));
+//     gl.drawArrays(gl.TRIANGLES, 0, flatten(stopsignFaceVertices).length);
+// }
 
 function setLight() {
-    var rBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, rBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, flatten(lightFaceVertices), gl.STATIC_DRAW);
+    // finalVerts.push(roadFaceVertices);
+    // finalVerts.push(carFaceVertices);
+    // finalVerts.push(bunnyFaceVertices);
+    // finalVerts.push(stopsignFaceVertices);
+    // finalVerts.push(lightFaceVertices);
 
-    var rPosition = gl.getAttribLocation( program, "vPosition");
-    gl.vertexAttribPointer(rPosition, 4, gl.FLOAT, false, 0, 0);
-    gl.enableVertexAttribArray(rPosition);
+    for(var x = 0; x < loadCap; x++) {
+        console.log(finalVerts);
+        var transformMatrix;
+        switch(x) {
+            case 0:
+                transformMatrix = translate(0, 0, 0);
+                break;
+            case 1:
+                transformMatrix = translate(3, 2, 0);
+                break;
+            case 2:
+                transformMatrix = translate(3, 1, 0);
+                break;
+            case 3:
+                transformMatrix = translate(-5, 0, 0);
+                break;
+            case 4:
+                transformMatrix = translate(-1, 0, 0);
+                break;
+        }
+        var modelMatrix = gl.getUniformLocation(program, "modelMatrix");
+        gl.uniformMatrix4fv(modelMatrix, false, flatten(transformMatrix));
 
-    fColor = gl.getUniformLocation(program, "fColor");
-    gl.uniform4fv(fColor, flatten(pink));
-    gl.drawArrays(gl.TRIANGLE_FAN, 0, flatten(lightFaceVertices).length);
+        var rBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, rBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, flatten(finalVerts[x]), gl.STATIC_DRAW);
+
+        var rPosition = gl.getAttribLocation( program, "vPosition");
+        gl.vertexAttribPointer(rPosition, 4, gl.FLOAT, false, 0, 0);
+        gl.enableVertexAttribArray(rPosition);
+
+        vColor = gl.getUniformLocation(program, "fColor");
+        gl.uniform4fv(vColor, flatten(colors[x]));
+        gl.drawArrays(gl.LINES, 0, flatten(finalVerts[x]).length);
+    }
 }
 
 function processData() {
-    modelViewMatrixLoc = gl.getUniformLocation( program, "modelViewMatrix" );
+    // setRoad();
+    // setCar();
+    // setBunny();
+    //setStop();
+    viewMatrixLoc = gl.getUniformLocation( program, "viewMatrix" );
     projectionMatrixLoc = gl.getUniformLocation( program, "projectionMatrix" );
 
     eye = vec3(0, 3, 10);
-    modelViewMatrix = lookAt(eye, at , up);
+    viewMatrix = lookAt(eye, at , up);
     projectionMatrix = perspective(fov, aspect, near, far);
 
-    gl.uniformMatrix4fv(modelViewMatrixLoc, false, flatten(modelViewMatrix) );
+    gl.uniformMatrix4fv(viewMatrixLoc, false, flatten(viewMatrix) );
     gl.uniformMatrix4fv(projectionMatrixLoc, false, flatten(projectionMatrix) );
-    setRoad();
-    setCar();
-    setBunny();
-    setStop();
     setLight();
 }
 
 function render() {
-    gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT );
     if(isBusy == false) {
         if(isLoaded == loadCap) {
             //isBusy = true;
@@ -158,19 +211,19 @@ function render() {
             //keepRender = true;     
         }
         else if(isLoaded == 0) {
-            loadFile("https://web.cs.wpi.edu/~jmcuneo/cs4731/project3_1/street.obj", "OBJ", 1);
+            loadFile("https://web.cs.wpi.edu/~jmcuneo/cs4731/project3_1/street.obj", "OBJ");
         }
         else if(isLoaded == 1) {
-            loadFile("https://web.cs.wpi.edu/~jmcuneo/cs4731/project3_1/car.obj", "OBJ", 2);
+            loadFile("https://web.cs.wpi.edu/~jmcuneo/cs4731/project3_1/car.obj", "OBJ");
         }
         else if(isLoaded == 2) {
-            loadFile("https://web.cs.wpi.edu/~jmcuneo/cs4731/project3_1/bunny.obj", "OBJ", 3);
+            loadFile("https://web.cs.wpi.edu/~jmcuneo/cs4731/project3_1/bunny.obj", "OBJ");
         }
         else if(isLoaded == 3) {
-            loadFile("https://web.cs.wpi.edu/~jmcuneo/cs4731/project3_1/stopsign.obj", "OBJ", 4);
+            loadFile("https://web.cs.wpi.edu/~jmcuneo/cs4731/project3_1/lamp.obj", "OBJ");
         }
         else if(isLoaded == 4) {
-            loadFile("https://web.cs.wpi.edu/~jmcuneo/cs4731/project3_1/lamp.obj", "OBJ", 5);
+            loadFile("https://web.cs.wpi.edu/~jmcuneo/cs4731/project3_1/stopsign.obj", "OBJ");
         }
     }
     
@@ -181,5 +234,8 @@ function render() {
     //     gl.drawArrays(gl.TRIANGLE_FAN, 0, flatten(bunnyFaceVertices).length);
     // }
 
-    requestAnimFrame(render);
+    if(isLoaded != loadCap) {
+        requestAnimFrame(render);
+    }
+    // requestAnimFrame(render);
 }

@@ -9,6 +9,10 @@ let faceVerts = []; // Indices into vertices array for this face
 let faceNorms = []; // Indices into normal array for this face
 let faceTexs = []; // Indices into UVs array for this face
 
+var finalVerts = [];
+var finalNorms = [];
+var finalUVs = [];
+
 var isBusy = false;
 
 let roadFaceVertices = []; 
@@ -80,7 +84,7 @@ function loadFile(fileURL, fileType, identity) {
  *
  * @param objFile The file to parse.
  */
-function parseObjFile(objFile, identity) {
+function parseObjFile(objFile) {
 
      // Split and sanitize OBJ file input
     let objLines = objFile.split('\n');
@@ -116,37 +120,23 @@ function parseObjFile(objFile, identity) {
 
         // Triangulate convex polygon using fan triangulation
         for(let i = 1; i < faceVerts.length - 1; i++) {
-            if(identity == 1) {
-                roadFaceVertices.push(faceVerts[0], faceVerts[i], faceVerts[i + 1]);
-                roadFaceNormals.push(faceNorms[0], faceNorms[i], faceNorms[i + 1]);
-                roadFaceUVs.push(faceTexs[0], faceTexs[i], faceTexs[i + 1]);
-            }
-            if(identity == 2) {
-                carFaceVertices.push(faceVerts[0], faceVerts[i], faceVerts[i + 1]);
-                carFaceNormals.push(faceNorms[0], faceNorms[i], faceNorms[i + 1]);
-                carFaceUVs.push(faceTexs[0], faceTexs[i], faceTexs[i + 1]);
-            }
-            if(identity == 3) {
-                bunnyFaceVertices.push(faceVerts[0], faceVerts[i], faceVerts[i + 1]);
-                bunnyFaceNormals.push(faceNorms[0], faceNorms[i], faceNorms[i + 1]);
-                bunnyFaceUVs.push(faceTexs[0], faceTexs[i], faceTexs[i + 1]);
-            }
-            if(identity == 4) {
-                stopsignFaceVertices.push(faceVerts[0], faceVerts[i], faceVerts[i + 1]);
-                stopsignFaceNormals.push(faceNorms[0], faceNorms[i], faceNorms[i + 1]);
-                stopsignFaceUVs.push(faceTexs[0], faceTexs[i], faceTexs[i + 1]);
-            }
-            if(identity == 5) {
-                lightFaceVertices.push(faceVerts[0], faceVerts[i], faceVerts[i + 1]);
-                lightFaceNormals.push(faceNorms[0], faceNorms[i], faceNorms[i + 1]);
-                lightFaceUVs.push(faceTexs[0], faceTexs[i], faceTexs[i + 1]);
-            }
+            faceVertices.push(faceVerts[0], faceVerts[i], faceVerts[i + 1]);
+            faceNormals.push(faceNorms[0], faceNorms[i], faceNorms[i + 1]);
+            faceUVs.push(faceTexs[0], faceTexs[i], faceTexs[i + 1]);
         }
-
         faceVerts = []; // Indices into vertices array for this face
         faceNorms = []; // Indices into normal array for this face
         faceTexs  = []; // Indices into UVs array for this face 
     }
+
+    finalVerts.push(faceVertices);
+    finalNorms.push(faceNormals);
+    finalUVs.push(faceUVs);
+
+    faceVertices = [];
+    faceNormals = [];
+    faceUVs = [];
+
     vertices = [];
     normals = [];
     uvs = [];
