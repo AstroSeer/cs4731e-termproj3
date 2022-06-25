@@ -9,6 +9,12 @@ let faceVerts = []; // Indices into vertices array for this face
 let faceNorms = []; // Indices into normal array for this face
 let faceTexs = []; // Indices into UVs array for this face
 
+let roadFaceVertices = []; 
+let roadFaceNormals = [];
+let roadFaceUVs = [];       
+
+var isLoaded = false;
+
 let currMaterial = null;    // Current material in use
 let textureURL = null;      // URL of texture file to use
 
@@ -23,7 +29,7 @@ let specularMap = new Map();
  * @param fileURL The URL of the file to load.
  * @param fileType The type (OBJ or MTL) of the file being loaded.
  */
-function loadFile(fileURL, fileType) {
+function loadFile(fileURL, fileType, identity) {
 
     // Asynchronously load file
     let objReq = new XMLHttpRequest();
@@ -34,15 +40,18 @@ function loadFile(fileURL, fileType) {
 
             switch(fileType) {
                 case "OBJ":
-                    parseObjFile(objFile);
+                    parseObjFile(objFile, identity);
                     break;
                 case "MTL":
-                    parseMtlFile(objFile);
+                    parseMtlFile(objFile, identity);
                     break;
                 default:
                     break;
             }
-
+            if(identity == 1) {
+                isLoaded = true;
+                console.log(isLoaded);
+            }
         }
     }
     objReq.send(null);
@@ -54,7 +63,7 @@ function loadFile(fileURL, fileType) {
  *
  * @param objFile The file to parse.
  */
-function parseObjFile(objFile) {
+function parseObjFile(objFile, identity) {
 
      // Split and sanitize OBJ file input
     let objLines = objFile.split('\n');
@@ -90,9 +99,11 @@ function parseObjFile(objFile) {
 
         // Triangulate convex polygon using fan triangulation
         for(let i = 1; i < faceVerts.length - 1; i++) {
-            faceVertices.push(faceVerts[0], faceVerts[i], faceVerts[i + 1]);
-            faceNormals.push(faceNorms[0], faceNorms[i], faceNorms[i + 1]);
-            faceUVs.push(faceTexs[0], faceTexs[i], faceTexs[i + 1]);
+            if(identity == 1) {
+                roadFaceVertices.push(faceVerts[0], faceVerts[i], faceVerts[i + 1]);
+                roadFaceNormals.push(faceNorms[0], faceNorms[i], faceNorms[i + 1]);
+                roadFaceUVs.push(faceTexs[0], faceTexs[i], faceTexs[i + 1]);
+            }
         }
 
         faceVerts = []; // Indices into vertices array for this face
@@ -153,8 +164,8 @@ function parseFaces(line) {
  *
  * @param mtlFile The file to parse.
  */
-function parseMtlFile(mtlFile) {
-
+function parseMtlFile(mtlFile, identity) {
+    
     // Sanitize the MTL file
     let mtlLines = mtlFile.split('\n');
     mtlLines = mtlLines.filter(line => {

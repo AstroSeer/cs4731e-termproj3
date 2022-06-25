@@ -7,15 +7,23 @@ var modelViewMatrixLoc;
 var projectionMatrixLoc;
 var modelViewMatrix;
 var projectionMatrix;
+var fColor;
 
-var fov = 30;
-var aspect = 1;
+var black = vec4(0.0, 0.0, 0.0, 1.0);
+var red = vec4(1.0, 0.0, 0.0, 1.0);
+var green = vec4(0.0, 1.0, 0.0, 1.0);
+var blue = vec4(0.0, 0.0, 1.0, 1.0);
+var pink = vec4(1.0, 0.0, 1.0, 1.0);
+var pointsArray = [];
+
+var fov = 60;
+var aspect;
 var near = 0.1;
-var far = 100;
+var far = 100000;
 
 var eye;
 var at = vec3(0.0, 0.0, 0.0);
-var up = vec3(0.0, -1.0, 0.0);
+var up = vec3(0.0, 1.0, 0.0);
 
 
 /**
@@ -38,38 +46,55 @@ function main() {
     gl.viewport(0, 0, canvas.width, canvas.height);
 
     // Set clear color
-    gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    gl.clearColor(1.0, 1.0, 1.0, 1.0);
 
     // Initialize shaders
     program = initShaders(gl, "vshader", "fshader");
     gl.useProgram(program);
 
-    loadFile("https://web.cs.wpi.edu/~jmcuneo/cs4731/project3_1/car.obj", "OBJ");
+    aspect = canvas.width/canvas.height;
 
-    var vBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, vBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, flatten(vertices), gl.STATIC_DRAW);
+    gl.enable(gl.DEPTH_TEST)
 
-    var vPosition = gl.getAttribLocation( program, "vPosition");
-    gl.vertexAttribPointer(vPosition, 4, gl.FLOAT, false, 0, 0);
-    gl.enableVertexAttribArray(vPosition);
-    
+    loadFile("https://web.cs.wpi.edu/~jmcuneo/cs4731/project3_1/street.obj", "OBJ", 1);
+    render();
+}
+
+function setRoad() {
+    //console.log(roadFaceVertices);
+    var rBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, rBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, flatten(roadFaceVertices), gl.STATIC_DRAW);
+
+    var rPosition = gl.getAttribLocation( program, "vPosition");
+    gl.vertexAttribPointer(rPosition, 4, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(rPosition);
+
+    fColor = gl.getUniformLocation(program, "fColor");
+    gl.uniform4fv(fColor, flatten(black));
+    gl.drawArrays(gl.TRIANGLE_FAN, 0, flatten(roadFaceVertices).length);
+}
+
+function processData() {
     modelViewMatrixLoc = gl.getUniformLocation( program, "modelViewMatrix" );
     projectionMatrixLoc = gl.getUniformLocation( program, "projectionMatrix" );
 
-    render();
-
-}
-
-function render() {
-    gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    eye = vec3(0, 0, -1);
+    eye = vec3(0, 3, 8);
     modelViewMatrix = lookAt(eye, at , up);
     projectionMatrix = perspective(fov, aspect, near, far);
 
     gl.uniformMatrix4fv(modelViewMatrixLoc, false, flatten(modelViewMatrix) );
     gl.uniformMatrix4fv(projectionMatrixLoc, false, flatten(projectionMatrix) );
-    
-	gl.drawArrays(gl.TRIANGLE_FAN, 0, vertices.length);
+    setRoad();
+}
+
+function render() {
+    gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+    if(isLoaded) {
+        // console.log(flatten(faceVertices).length);
+        processData();        
+    }
+
     requestAnimFrame(render);
 }
