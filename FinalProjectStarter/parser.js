@@ -23,6 +23,14 @@ let bunnyFaceVertices = [];
 let bunnyFaceNormals = [];
 let bunnyFaceUVs = [];    
 
+let stopsignFaceVertices = []; 
+let stopsignFaceNormals = [];
+let stopsignFaceUVs = []; 
+
+let lightFaceVertices = []; 
+let lightFaceNormals = [];
+let lightFaceUVs = []; 
+
 var isLoaded = 0;
 
 let currMaterial = null;    // Current material in use
@@ -121,7 +129,17 @@ function parseObjFile(objFile, identity) {
             if(identity == 3) {
                 bunnyFaceVertices.push(faceVerts[0], faceVerts[i], faceVerts[i + 1]);
                 bunnyFaceNormals.push(faceNorms[0], faceNorms[i], faceNorms[i + 1]);
-                carFaceUVs.push(faceTexs[0], faceTexs[i], faceTexs[i + 1]);
+                bunnyFaceUVs.push(faceTexs[0], faceTexs[i], faceTexs[i + 1]);
+            }
+            if(identity == 4) {
+                stopsignFaceVertices.push(faceVerts[0], faceVerts[i], faceVerts[i + 1]);
+                stopsignFaceNormals.push(faceNorms[0], faceNorms[i], faceNorms[i + 1]);
+                stopsignFaceUVs.push(faceTexs[0], faceTexs[i], faceTexs[i + 1]);
+            }
+            if(identity == 5) {
+                lightFaceVertices.push(faceVerts[0], faceVerts[i], faceVerts[i + 1]);
+                lightFaceNormals.push(faceNorms[0], faceNorms[i], faceNorms[i + 1]);
+                lightFaceUVs.push(faceTexs[0], faceTexs[i], faceTexs[i + 1]);
             }
         }
 
