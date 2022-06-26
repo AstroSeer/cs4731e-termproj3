@@ -12,7 +12,7 @@ var fColor;
 var colors = [];
 var black = vec4(0.0, 0.0, 0.0, 1.0);
 var red = vec4(1.0, 0.0, 0.0, 1.0);
-var green = vec4(0.0, 1.0, 0.0, 1.0);
+var green = vec4(0.8, 0.773627, 0.298586, 1.0);
 var blue = vec4(0.0, 0.0, 1.0, 1.0);
 var pink = vec4(1.0, 0.0, 1.0, 1.0);
 colors.push(black);
@@ -21,7 +21,7 @@ colors.push(green);
 colors.push(blue);
 colors.push(pink);
 
-var loadCap = 5;
+var loadCap = 6;
 var keepRender = false;
 
 var fov = 60;
@@ -67,15 +67,9 @@ function main() {
     render();
 }
 
-function setLight() {
-    // finalVerts.push(roadFaceVertices);
-    // finalVerts.push(carFaceVertices);
-    // finalVerts.push(bunnyFaceVertices);
-    // finalVerts.push(stopsignFaceVertices);
-    // finalVerts.push(lightFaceVertices);
-
-    for(var x = 0; x < loadCap; x++) {
-        console.log(finalVerts);
+function setObjects() {
+    for(var x = 0; x < 5; x++) {
+        //console.log(finalVerts);
         var transformMatrix;
         switch(x) {
             case 0:
@@ -85,7 +79,7 @@ function setLight() {
                 transformMatrix = translate(3, 2, 0);
                 break;
             case 2:
-                transformMatrix = translate(3, 1, 0);
+                transformMatrix = translate(1, 1, 0);
                 break;
             case 3:
                 transformMatrix = translate(-5, 0, 0);
@@ -112,10 +106,6 @@ function setLight() {
 }
 
 function processData() {
-    // setRoad();
-    // setCar();
-    // setBunny();
-    //setStop();
     viewMatrixLoc = gl.getUniformLocation( program, "viewMatrix" );
     projectionMatrixLoc = gl.getUniformLocation( program, "projectionMatrix" );
 
@@ -125,17 +115,18 @@ function processData() {
 
     gl.uniformMatrix4fv(viewMatrixLoc, false, flatten(viewMatrix) );
     gl.uniformMatrix4fv(projectionMatrixLoc, false, flatten(projectionMatrix) );
-    setLight();
+    setObjects();
 }
 
 function render() {
     gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT );
     if(isBusy == false) {
         if(isLoaded == loadCap) {
-            //isBusy = true;
-            //console.log(flatten(faceVertices).length);
-            processData();
-            //keepRender = true;     
+            //console.log(textureURL);
+            console.log(currMaterial);
+            console.log(diffuseMap);
+            console.log(specularMap);
+            processData();    
         }
         else if(isLoaded == 0) {
             loadFile("https://web.cs.wpi.edu/~jmcuneo/cs4731/project3_1/street.obj", "OBJ");
@@ -152,17 +143,10 @@ function render() {
         else if(isLoaded == 4) {
             loadFile("https://web.cs.wpi.edu/~jmcuneo/cs4731/project3_1/stopsign.obj", "OBJ");
         }
+        else if(isLoaded == 5) {
+            loadFile("https://web.cs.wpi.edu/~jmcuneo/cs4731/project3_1/bunny.mtl", "MTL");
+        }
     }
-    
-    // if(keepRender) {
-    //     console.log("renderinggg");
-    //     gl.drawArrays(gl.TRIANGLE_FAN, 0, flatten(roadFaceVertices).length);
-    //     gl.drawArrays(gl.TRIANGLE_FAN, 0, flatten(carFaceVertices).length);
-    //     gl.drawArrays(gl.TRIANGLE_FAN, 0, flatten(bunnyFaceVertices).length);
-    // }
 
-    if(isLoaded != loadCap) {
-        requestAnimFrame(render);
-    }
-    // requestAnimFrame(render);
+    requestAnimFrame(render);
 }

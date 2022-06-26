@@ -13,27 +13,7 @@ var finalVerts = [];
 var finalNorms = [];
 var finalUVs = [];
 
-var isBusy = false;
-
-let roadFaceVertices = []; 
-let roadFaceNormals = [];
-let roadFaceUVs = [];    
-
-let carFaceVertices = []; 
-let carFaceNormals = [];
-let carFaceUVs = []; 
-
-let bunnyFaceVertices = []; 
-let bunnyFaceNormals = [];
-let bunnyFaceUVs = [];    
-
-let stopsignFaceVertices = []; 
-let stopsignFaceNormals = [];
-let stopsignFaceUVs = []; 
-
-let lightFaceVertices = []; 
-let lightFaceNormals = [];
-let lightFaceUVs = []; 
+var isBusy = false; 
 
 var isLoaded = 0;
 
@@ -194,7 +174,7 @@ function parseFaces(line) {
  *
  * @param mtlFile The file to parse.
  */
-function parseMtlFile(mtlFile, identity) {
+function parseMtlFile(mtlFile) {
     
     // Sanitize the MTL file
     let mtlLines = mtlFile.split('\n');
