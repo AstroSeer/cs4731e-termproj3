@@ -15,14 +15,17 @@ var finalUVs = [];
 
 var isBusy = false; 
 
-var isLoaded = 0;
+var isObjectLoaded = 0;
+var isMaterialLoaded = 0;
 
 let currMaterial = null;    // Current material in use
 let textureURL = null;      // URL of texture file to use
 
 // Mapping of material name to diffuse / specular colors
 let diffuseMap = new Map();
+var finalDiffuseMaps = [];
 let specularMap = new Map();
+var finalSpecularMaps = [];
 
 
 /**
@@ -31,7 +34,7 @@ let specularMap = new Map();
  * @param fileURL The URL of the file to load.
  * @param fileType The type (OBJ or MTL) of the file being loaded.
  */
-function loadFile(fileURL, fileType, identity) {
+function loadFile(fileURL, fileType) {
     isBusy = true;
     // Asynchronously load file
     let objReq = new XMLHttpRequest();
@@ -42,17 +45,20 @@ function loadFile(fileURL, fileType, identity) {
 
             switch(fileType) {
                 case "OBJ":
-                    parseObjFile(objFile, identity);
+                    parseObjFile(objFile);
+                    isObjectLoaded = isObjectLoaded + 1;
+                    isBusy = false;
+                    console.log(isObjectLoaded);
                     break;
                 case "MTL":
-                    parseMtlFile(objFile, identity);
+                    parseMtlFile(objFile);
+                    isMaterialLoaded = isMaterialLoaded + 1;
+                    isBusy = false;
+                    console.log(isMaterialLoaded);
                     break;
                 default:
                     break;
             }
-            isLoaded = isLoaded + 1;
-            isBusy = false;
-            console.log(isLoaded);
         }
     }
     objReq.send(null);
@@ -203,4 +209,8 @@ function parseMtlFile(mtlFile) {
             textureURL = "https://web.cs.wpi.edu/~jmcuneo/cs4731/project3/" + line.substr(line.indexOf(' ') + 1);
         }
     }
+    finalDiffuseMaps.push(diffuseMap);
+    diffuseMap = new Map();
+    finalSpecularMaps.push(specularMap);
+    specularMap = new Map();
 }

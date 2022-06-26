@@ -10,9 +10,9 @@ var projectionMatrix;
 var fColor;
 
 var colors = [];
-var black = vec4(0.0, 0.0, 0.0, 1.0);
+var black = vec4(0.041774, 0.034495, 0.034495, 1.0);
 var red = vec4(1.0, 0.0, 0.0, 1.0);
-var green = vec4(0.8, 0.773627, 0.298586, 1.0);
+var green = vec4(0.0, 1.0, 0.0, 1.0);
 var blue = vec4(0.0, 0.0, 1.0, 1.0);
 var pink = vec4(1.0, 0.0, 1.0, 1.0);
 colors.push(black);
@@ -21,8 +21,33 @@ colors.push(green);
 colors.push(blue);
 colors.push(pink);
 
-var loadCap = 6;
+var objectLoadCap = 5;
+var materialLoadCap = 1;
 var keepRender = false;
+
+var texCoordsArray = [];
+
+var texture;
+
+var minT = 0.0;
+var maxT = 1.0
+
+var lightPosition = vec4( 1.0, 3.0, 1.0, 0.0 ); 
+var lightAmbient = vec4( 0.2, 0.2, 0.2, 1.0 );
+var lightDiffuse = vec4( 1.0, 1.0, 1.0, 1.0 );
+var lightSpecular = vec4( 1.0, 1.0, 1.0, 1.0 );
+
+var materialAmbient = vec4( 1.0, 1.0, 1.0, 1.0 );
+var materialDiffuse = vec4(0.372315, 0.380494, 0.405655, 1.0);
+var materialSpecular = vec4( 0.5, 0.5, 0.5, 1.0 );
+var materialShininess = 10.0;
+
+var texCoord = [
+    vec2(minT, minT),
+    vec2(minT, maxT),
+    vec2(maxT, maxT),
+    vec2(maxT, minT)
+];
 
 var fov = 60;
 var aspect;
@@ -32,6 +57,7 @@ var far = 100000;
 var eye;
 var at = vec3(0.0, 0.0, 0.0);
 var up = vec3(0.0, 1.0, 0.0);
+
 
 
 /**
@@ -68,8 +94,12 @@ function main() {
 }
 
 function setObjects() {
-    for(var x = 0; x < 5; x++) {
-        //console.log(finalVerts);
+    for(var x = 0; x < objectLoadCap; x++) {
+        var diffuseProduct = mult(lightDiffuse, materialDiffuse);
+        var specularProduct = mult(lightSpecular, materialSpecular);
+        var ambientProduct = mult(lightAmbient, materialAmbient);
+
+        //console.log(finalUVs[x]);
         var transformMatrix;
         switch(x) {
             case 0:
@@ -99,8 +129,32 @@ function setObjects() {
         gl.vertexAttribPointer(rPosition, 4, gl.FLOAT, false, 0, 0);
         gl.enableVertexAttribArray(rPosition);
 
-        vColor = gl.getUniformLocation(program, "fColor");
-        gl.uniform4fv(vColor, flatten(colors[x]));
+        var vNormal = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, vNormal);
+        gl.bufferData(gl.ARRAY_BUFFER, flatten(finalNorms[x]), gl.STATIC_DRAW);
+
+        var vNormalPosition = gl.getAttribLocation( program, "vNormal");
+        gl.vertexAttribPointer(vNormalPosition, 4, gl.FLOAT, false, 0, 0);
+        gl.enableVertexAttribArray(vNormalPosition);
+
+        console.log(finalNorms);
+
+        // var vColor = gl.getUniformLocation(program, "fColor");
+        // gl.uniform4fv(vColor, flatten(colors[x]));
+        // gl.drawArrays(gl.TRIANGLES, 0, flatten(finalVerts[x]).length);
+
+        // console.log(diffuseProduct);
+        // console.log(specularProduct);
+        // console.log(ambientProduct);
+        // console.log(lightPosition);
+        // console.log(materialShininess);
+
+        gl.uniform4fv(gl.getUniformLocation(program, "diffuseProduct"), flatten(diffuseProduct));
+        gl.uniform4fv(gl.getUniformLocation(program, "specularProduct"), flatten(specularProduct));
+        gl.uniform4fv(gl.getUniformLocation(program, "ambientProduct"), flatten(ambientProduct));
+        gl.uniform4fv(gl.getUniformLocation(program, "lightPosition"), flatten(lightPosition));
+        gl.uniform1f(gl.getUniformLocation(program, "shininess"), materialShininess);
+
         gl.drawArrays(gl.TRIANGLES, 0, flatten(finalVerts[x]).length);
     }
 }
@@ -118,33 +172,62 @@ function processData() {
     setObjects();
 }
 
+function configureTexture(image) {
+    var tex = gl.createTexture();
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, tex);
+
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+
+    gl.uniform1i(gl.getUniformLocation(program, "texture"), 0);
+
+}
+
 function render() {
     gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT );
     if(isBusy == false) {
-        if(isLoaded == loadCap) {
+        if(isObjectLoaded == objectLoadCap && isMaterialLoaded == materialLoadCap) {
             //console.log(textureURL);
-            console.log(currMaterial);
-            console.log(diffuseMap);
-            console.log(specularMap);
+            //console.log(currMaterial);
+            console.log(finalDiffuseMaps);
+            console.log(finalSpecularMaps);
             processData();    
         }
-        else if(isLoaded == 0) {
+        else if(isMaterialLoaded == 0) {
+            loadFile("https://web.cs.wpi.edu/~jmcuneo/cs4731/project3_1/street.mtl", "MTL");
+        }
+        // else if(isMaterialLoaded == 1) {
+        //     loadFile("https://web.cs.wpi.edu/~jmcuneo/cs4731/project3_1/car.mtl", "MTL");
+        // }
+        // else if(isMaterialLoaded == 2) {
+        //     loadFile("https://web.cs.wpi.edu/~jmcuneo/cs4731/project3_1/bunny.mtl", "MTL");
+        // }
+        // else if(isMaterialLoaded == 3) {
+        //     loadFile("https://web.cs.wpi.edu/~jmcuneo/cs4731/project3_1/lamp.mtl", "MTL");
+        // }
+        // else if(isMaterialLoaded == 4) {
+        //     loadFile("https://web.cs.wpi.edu/~jmcuneo/cs4731/project3_1/stopsign.mtl", "MTL");
+        // }
+        else if(isObjectLoaded == 0) {
             loadFile("https://web.cs.wpi.edu/~jmcuneo/cs4731/project3_1/street.obj", "OBJ");
         }
-        else if(isLoaded == 1) {
+        else if(isObjectLoaded == 1) {
             loadFile("https://web.cs.wpi.edu/~jmcuneo/cs4731/project3_1/car.obj", "OBJ");
         }
-        else if(isLoaded == 2) {
+        else if(isObjectLoaded == 2) {
             loadFile("https://web.cs.wpi.edu/~jmcuneo/cs4731/project3_1/bunny.obj", "OBJ");
         }
-        else if(isLoaded == 3) {
+        else if(isObjectLoaded == 3) {
             loadFile("https://web.cs.wpi.edu/~jmcuneo/cs4731/project3_1/lamp.obj", "OBJ");
         }
-        else if(isLoaded == 4) {
+        else if(isObjectLoaded == 4) {
             loadFile("https://web.cs.wpi.edu/~jmcuneo/cs4731/project3_1/stopsign.obj", "OBJ");
-        }
-        else if(isLoaded == 5) {
-            loadFile("https://web.cs.wpi.edu/~jmcuneo/cs4731/project3_1/bunny.mtl", "MTL");
         }
     }
 

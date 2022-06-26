@@ -8,12 +8,18 @@
             uniform mat4 viewMatrix;
             uniform mat4 modelMatrix;
             uniform mat4 projectionMatrix;
-            varying vec4 fColor;
             uniform vec4 lightPosition;
             varying vec3 L, N, V;
             attribute vec4 vNormal;
 
             void main() {
+                vec3 pos = (viewMatrix * vPosition).xyz;
+                L = normalize(lightPosition.xyz - pos);
+
+                N = normalize(viewMatrix * vNormal).xyz;
+
+
+                V = normalize(-pos);
                 gl_Position = projectionMatrix * viewMatrix * modelMatrix * vPosition;
             }
         </script>
@@ -21,9 +27,20 @@
         <script id="fshader" type="x-shader/x-fragment">
             precision mediump float;
 
-            uniform vec4 fColor;
+            varying vec3 L, N, V;
+            uniform vec4 ambientProduct, diffuseProduct, specularProduct;
+            uniform float shininess;
 
             void main() {
+                vec3 R = (2.0 * dot(L, N) * N) - L;
+
+                vec4 diffuse = diffuseProduct * dot(L, N);
+                vec4 ambient = ambientProduct;
+                vec4 specular = specularProduct * pow(max(dot(V, R), 0.0), shininess);
+            
+                vec4 fColor = diffuse + specular + ambient;
+                fColor.a = 1.0;
+
                 gl_FragColor = fColor;
             }
         </script>
