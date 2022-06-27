@@ -9,18 +9,6 @@ var viewMatrix;
 var projectionMatrix;
 var fColor;
 
-var colors = [];
-var black = vec4(0.041774, 0.034495, 0.034495, 1.0);
-var red = vec4(1.0, 0.0, 0.0, 1.0);
-var green = vec4(0.0, 1.0, 0.0, 1.0);
-var blue = vec4(0.0, 0.0, 1.0, 1.0);
-var pink = vec4(1.0, 0.0, 1.0, 1.0);
-colors.push(black);
-colors.push(red);
-colors.push(green);
-colors.push(blue);
-colors.push(pink);
-
 var objectLoadCap = 5;
 var materialLoadCap = 5;
 var keepRender = false;
@@ -32,12 +20,14 @@ var texture;
 var minT = 0.0;
 var maxT = 1.0
 
-var lightPosition = vec4( 0.0, 0.0, 5.0, 0.0 ); 
-var lightAmbient = vec4( 0.05, 0.05, 0.05, 1.0 );
+
+var lightOn = true;
+var lightPosition = vec4( 0.0, 2.0, 0.0, 0.0 ); 
+var lightAmbient = vec4( 0.1, 0.1, 0.1, 1.0 );
 var lightDiffuse = vec4( 1.0, 1.0, 1.0, 1.0 );
 var lightSpecular = vec4( 1.0, 1.0, 1.0, 1.0 );
 
-var materialAmbient = vec4( 1.0, 1.0, 1.0, 1.0 );
+var materialAmbient = vec4( 0.3, 0.3, 0.3, 1.0 );
 var materialDiffuse;
 var materialSpecular;
 var materialShininess = 20.0;
@@ -116,7 +106,7 @@ function setObjects() {
                     transformMatrix = translate(0, 0, 0);
                     break;
                 case 1:
-                    transformMatrix = translate(-2.75, 0, 0);
+                    transformMatrix = translate(2.75, 0, 0);
                     break;
                 case 2:
                     transformMatrix = translate(1, 1, 0);
@@ -125,7 +115,7 @@ function setObjects() {
                     transformMatrix = translate(0, 0, 0);
                     break;
                 case 4:
-                    transformMatrix = translate(-1, 0, -2);
+                    transformMatrix = translate(-1, 0, -4);
                     break;
             }
             var modelMatrix = gl.getUniformLocation(program, "modelMatrix");
@@ -161,11 +151,27 @@ function setObjects() {
     }
 }
 
+window.addEventListener("keypress", function(event) {
+    var code = event.key;
+    //Switches between wireframe and solid when "M" is pressed
+    if(code == "l" || code == "L") {
+        if(lightOn) {
+            lightDiffuse = vec4( 0.1, 0.1, 0.1, 1.0 );
+            lightSpecular = vec4( 0.1, 0.1, 0.1, 1.0 );
+        }
+        else {
+            lightDiffuse = vec4( 1.0, 1.0, 1.0, 1.0 );
+            lightSpecular = vec4( 1.0, 1.0, 1.0, 1.0 );
+        }
+        lightOn = !lightOn;
+    }
+});
+
 function processData() {
     viewMatrixLoc = gl.getUniformLocation( program, "viewMatrix" );
     projectionMatrixLoc = gl.getUniformLocation( program, "projectionMatrix" );
 
-    eye = vec3(0, 3, 10);
+    eye = vec3(0, 3, 8);
     viewMatrix = lookAt(eye, at , up);
     projectionMatrix = perspective(fov, aspect, near, far);
 

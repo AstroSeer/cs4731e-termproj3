@@ -110,12 +110,12 @@ function parseObjFile(objFile) {
                 // console.log(currMaterial);
                 //console.log(mapVerts.has(currMaterial));
                 if(mapVerts.has(currMaterial)) {
-                    console.log("Before changes "+currMaterial);
-                    console.log(mapVerts.get(currMaterial).length);
+                    // console.log("Before changes "+currMaterial);
+                    // console.log(mapVerts.get(currMaterial).length);
                     var tempV = mapVerts.get(currMaterial).concat(faceVertices);
-                    console.log(faceVertices.length);
-                    console.log(tempV.length);
-                    console.log(tempV);
+                    // console.log(faceVertices.length);
+                    // console.log(tempV.length);
+                    // console.log(tempV);
                     var tempN = mapNorms.get(currMaterial).concat(faceNormals);
                     var tempU = mapUVs.get(currMaterial).concat(faceUVs);
                     mapVerts.set(currMaterial, tempV);
@@ -128,8 +128,8 @@ function parseObjFile(objFile) {
                     mapUVs.set(currMaterial, faceUVs);
                 }
                 
-                console.log("maps has new stuff at "+currMaterial);
-                console.log(mapVerts.get(currMaterial).length);
+                // console.log("maps has new stuff at "+currMaterial);
+                // console.log(mapVerts.get(currMaterial).length);
 
                 // console.log(mapVerts.size);
                 faceVertices = [];
@@ -156,8 +156,8 @@ function parseObjFile(objFile) {
     }
 
     if(mapVerts.has(currMaterial)) {
-        console.log("Before changes "+currMaterial);
-        console.log(mapVerts.get(currMaterial).length);
+        // console.log("Before changes "+currMaterial);
+        // console.log(mapVerts.get(currMaterial).length);
         var tempV2 = mapVerts.get(currMaterial).concat(faceVertices);
         var tempN2 = mapNorms.get(currMaterial).concat(faceNormals);
         var tempU2 = mapUVs.get(currMaterial).concat(faceUVs);
@@ -171,7 +171,7 @@ function parseObjFile(objFile) {
         mapUVs.set(currMaterial, faceUVs);
     }
 
-    console.log("Final "+mapVerts.get(currMaterial).length+" and material is "+currMaterial);
+    //console.log("Final "+mapVerts.get(currMaterial).length+" and material is "+currMaterial);
 
     finalVerts.push(mapVerts);
     finalNorms.push(mapNorms);
