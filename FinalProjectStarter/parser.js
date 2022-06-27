@@ -15,6 +15,8 @@ var finalUVs = [];
 
 var isBusy = false; 
 
+var matTrip = false;
+
 var isObjectLoaded = 0;
 var isMaterialLoaded = 0;
 
@@ -23,9 +25,7 @@ let textureURL = null;      // URL of texture file to use
 
 // Mapping of material name to diffuse / specular colors
 let diffuseMap = new Map();
-var finalDiffuseMaps = [];
 let specularMap = new Map();
-var finalSpecularMaps = [];
 
 
 /**
@@ -48,13 +48,13 @@ function loadFile(fileURL, fileType) {
                     parseObjFile(objFile);
                     isObjectLoaded = isObjectLoaded + 1;
                     isBusy = false;
-                    console.log(isObjectLoaded);
+                    //console.log(isObjectLoaded);
                     break;
                 case "MTL":
                     parseMtlFile(objFile);
                     isMaterialLoaded = isMaterialLoaded + 1;
                     isBusy = false;
-                    console.log(isMaterialLoaded);
+                    //console.log(isMaterialLoaded);
                     break;
                 default:
                     break;
@@ -71,7 +71,9 @@ function loadFile(fileURL, fileType) {
  * @param objFile The file to parse.
  */
 function parseObjFile(objFile) {
-
+    var mapVerts = new Map();
+    var mapNorms = new Map();
+    var mapUVs = new Map();
      // Split and sanitize OBJ file input
     let objLines = objFile.split('\n');
     objLines = objLines.filter(line => {
@@ -98,6 +100,43 @@ function parseObjFile(objFile) {
             vertices.push(vec4(coords[0], coords[1], coords[2], 1.0));
         }
         else if (line.startsWith("usemtl")) { // Material use definition
+            if(matTrip == false) {
+                matTrip = !matTrip;
+            }
+            else {
+                // console.log("-----------------");
+                // console.log(mapVerts.size);
+                // console.log(faceVertices);
+                // console.log(currMaterial);
+                //console.log(mapVerts.has(currMaterial));
+                if(mapVerts.has(currMaterial)) {
+                    console.log("Before changes "+currMaterial);
+                    console.log(mapVerts.get(currMaterial).length);
+                    var tempV = mapVerts.get(currMaterial).concat(faceVertices);
+                    console.log(faceVertices.length);
+                    console.log(tempV.length);
+                    console.log(tempV);
+                    var tempN = mapNorms.get(currMaterial).concat(faceNormals);
+                    var tempU = mapUVs.get(currMaterial).concat(faceUVs);
+                    mapVerts.set(currMaterial, tempV);
+                    mapNorms.set(currMaterial, tempN);
+                    mapUVs.set(currMaterial, tempU);
+                }
+                else {
+                    mapVerts.set(currMaterial, faceVertices);
+                    mapNorms.set(currMaterial, faceNormals);
+                    mapUVs.set(currMaterial, faceUVs);
+                }
+                
+                console.log("maps has new stuff at "+currMaterial);
+                console.log(mapVerts.get(currMaterial).length);
+
+                // console.log(mapVerts.size);
+                faceVertices = [];
+                faceNormals = [];
+                faceUVs = [];
+            }
+            // console.log("I am at "+currMaterial+" and trip is "+matTrip);
             currMaterial = line.substr(line.indexOf(' ') + 1);
         }
         else if (line.charAt(0) === 'f') {
@@ -109,15 +148,37 @@ function parseObjFile(objFile) {
             faceVertices.push(faceVerts[0], faceVerts[i], faceVerts[i + 1]);
             faceNormals.push(faceNorms[0], faceNorms[i], faceNorms[i + 1]);
             faceUVs.push(faceTexs[0], faceTexs[i], faceTexs[i + 1]);
+            
         }
         faceVerts = []; // Indices into vertices array for this face
         faceNorms = []; // Indices into normal array for this face
         faceTexs  = []; // Indices into UVs array for this face 
     }
 
-    finalVerts.push(faceVertices);
-    finalNorms.push(faceNormals);
-    finalUVs.push(faceUVs);
+    if(mapVerts.has(currMaterial)) {
+        console.log("Before changes "+currMaterial);
+        console.log(mapVerts.get(currMaterial).length);
+        var tempV2 = mapVerts.get(currMaterial).concat(faceVertices);
+        var tempN2 = mapNorms.get(currMaterial).concat(faceNormals);
+        var tempU2 = mapUVs.get(currMaterial).concat(faceUVs);
+        mapVerts.set(currMaterial, tempV2);
+        mapNorms.set(currMaterial, tempN2);
+        mapUVs.set(currMaterial, tempU2);
+    }
+    else {
+        mapVerts.set(currMaterial, faceVertices);
+        mapNorms.set(currMaterial, faceNormals);
+        mapUVs.set(currMaterial, faceUVs);
+    }
+
+    console.log("Final "+mapVerts.get(currMaterial).length+" and material is "+currMaterial);
+
+    finalVerts.push(mapVerts);
+    finalNorms.push(mapNorms);
+    finalUVs.push(mapUVs);
+
+    // console.log("About to print final verts");
+    // console.log(finalVerts);
 
     faceVertices = [];
     faceNormals = [];
@@ -126,6 +187,8 @@ function parseObjFile(objFile) {
     vertices = [];
     normals = [];
     uvs = [];
+    currMaterial = null;
+    matTrip = false;
 }
 
 
@@ -209,8 +272,8 @@ function parseMtlFile(mtlFile) {
             textureURL = "https://web.cs.wpi.edu/~jmcuneo/cs4731/project3/" + line.substr(line.indexOf(' ') + 1);
         }
     }
-    finalDiffuseMaps.push(diffuseMap);
-    diffuseMap = new Map();
-    finalSpecularMaps.push(specularMap);
-    specularMap = new Map();
+    // finalDiffuseMaps.push(diffuseMap);
+    // diffuseMap = new Map();
+    // finalSpecularMaps.push(specularMap);
+    // specularMap = new Map();
 }
