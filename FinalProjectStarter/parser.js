@@ -104,18 +104,8 @@ function parseObjFile(objFile) {
                 matTrip = !matTrip;
             }
             else {
-                // console.log("-----------------");
-                // console.log(mapVerts.size);
-                // console.log(faceVertices);
-                // console.log(currMaterial);
-                //console.log(mapVerts.has(currMaterial));
                 if(mapVerts.has(currMaterial)) {
-                    // console.log("Before changes "+currMaterial);
-                    // console.log(mapVerts.get(currMaterial).length);
                     var tempV = mapVerts.get(currMaterial).concat(faceVertices);
-                    // console.log(faceVertices.length);
-                    // console.log(tempV.length);
-                    // console.log(tempV);
                     var tempN = mapNorms.get(currMaterial).concat(faceNormals);
                     var tempU = mapUVs.get(currMaterial).concat(faceUVs);
                     mapVerts.set(currMaterial, tempV);
@@ -127,15 +117,10 @@ function parseObjFile(objFile) {
                     mapNorms.set(currMaterial, faceNormals);
                     mapUVs.set(currMaterial, faceUVs);
                 }
-                // console.log("maps has new stuff at "+currMaterial);
-                // console.log(mapVerts.get(currMaterial).length);
-
-                // console.log(mapVerts.size);
                 faceVertices = [];
                 faceNormals = [];
                 faceUVs = [];
             }
-            // console.log("I am at "+currMaterial+" and trip is "+matTrip);
             currMaterial = line.substr(line.indexOf(' ') + 1);
         }
         else if (line.charAt(0) === 'f') {
@@ -271,9 +256,4 @@ function parseMtlFile(mtlFile) {
             textureURL = "https://web.cs.wpi.edu/~jmcuneo/cs4731/project3/" + line.substr(line.indexOf(' ') + 1);
         }
     }
-    // finalDiffuseMaps.push(diffuseMap);
-    // diffuseMap = new Map();
-    // finalSpecularMaps.push(specularMap);
-    // specularMap = new Map();
-    //console.log(textureURL);
 }

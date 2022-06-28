@@ -36,8 +36,8 @@ var maxT = 1.0;
 var keepRender = false;
 
 var lightOn = true;
-var lightPosition = vec4( 0.0, 3.0, 5.0, 0.0 ); 
-var lightAmbient = vec4( 0.1, 0.1, 0.1, 1.0 );
+var lightPosition = vec4( 0.0, 2.0, 0.0, 0.0 ); 
+var lightAmbient = vec4( 0.2, 0.2, 0.2, 1.0 );
 var lightDiffuse = vec4( 1.0, 1.0, 1.0, 1.0 );
 var lightSpecular = vec4( 1.0, 1.0, 1.0, 1.0 );
 
@@ -121,16 +121,8 @@ function setObjects() {
 
     for(var x = 0; x < objectLoadCap; x++) {
         for(let key of finalVerts[x]) {
-            //console.log(key);
-            // console.log(diffuseMap.get(key[0]));
             materialDiffuse = diffuseMap.get(key[0]);
             materialSpecular = specularMap.get(key[0]);
-
-            //console.log(materialDiffuse);
-
-            // var diffuseProduct = mult(lightDiffuse, materialDiffuse);
-            // var specularProduct = mult(lightSpecular, materialSpecular);
-            // var ambientProduct = mult(lightAmbient, materialAmbient);
     
             gl.uniform4fv(gl.getUniformLocation(program, "lightDiffuse"), flatten(lightDiffuse));
             gl.uniform4fv(gl.getUniformLocation(program, "materialDiffuse"), flatten(materialDiffuse));
@@ -139,15 +131,13 @@ function setObjects() {
             gl.uniform4fv(gl.getUniformLocation(program, "lightAmbient"), flatten(lightAmbient));
             gl.uniform4fv(gl.getUniformLocation(program, "materialAmbient"), flatten(materialAmbient));
 
-            // console.log(diffuseProduct);
-            // console.log(specularProduct);
-
             switch(x) {
                 case 0:
                     transformMatrix = translate(0, 0, 0);
                     break;
                 case 1:
-                    transformMatrix = translate(2.75, 0, 0);
+                    transformMatrix = translate(2.85, -0.25, 0);
+                    transformMatrix = mult(transformMatrix, rotateY(180));
                     break;
                 case 2:
                     transformMatrix = translate(1, 1, 0);
@@ -156,7 +146,7 @@ function setObjects() {
                     transformMatrix = translate(0, 0, 0);
                     break;
                 case 4:
-                    transformMatrix = translate(-1, 0, -4);
+                    transformMatrix = translate(-1, 0, -4.25);
                     break;
             }
             gl.uniformMatrix4fv(modelMatrix, false, flatten(transformMatrix));
@@ -174,7 +164,6 @@ function setObjects() {
             gl.enableVertexAttribArray(vNormalPosition);
             
             if(x == 4 && finalUVs[4].get('StopMaterial')) {
-                //console.log(finalUVs[4].get('StopMaterial'));
                 var tBuffer = gl.createBuffer();
                 gl.bindBuffer( gl.ARRAY_BUFFER, tBuffer );
                 gl.bufferData( gl.ARRAY_BUFFER, flatten(finalUVs[4].get('StopMaterial')), gl.STATIC_DRAW );
@@ -191,12 +180,10 @@ function setObjects() {
 
             gl.uniform4fv(gl.getUniformLocation(program, "lightPosition"), flatten(lightPosition));
             gl.uniform1f(gl.getUniformLocation(program, "shininess"), materialShininess);
-            //console.log(stopSign);
             gl.uniform1f(gl.getUniformLocation(program, "vStopSign"), stopSign);
 
             gl.drawArrays(gl.TRIANGLES, 0, flatten(key[1]).length);
         }
-        //console.log(finalUVs[x]);
     }
 }
 
@@ -267,26 +254,6 @@ function processData() {
     eye = eyeCoords;
     viewMatrix = lookAt(eye, at , up);
     if(cameraMoving) {
-        //unit circle
-        
-        // eyeCoords = add(eyeCoords, vec3(eyeMoveX, eyeMoveY, eyeMoveZ));
-        // if(eyeCoords[0] >= 8.0 || eyeCoords[0] <= -8.0) {
-        //     //console.log("I am in here");
-        //     eyeMoveX = eyeMoveX * -1;
-        // }
-        // if(eyeCoords[1] >= 3.5 || eyeCoords[1] <= 2.5) {
-        //     eyeMoveY = eyeMoveY * -1;
-        // }
-        // if(eyeCoords[2] >= 8.0 || eyeCoords[2] <= -8.0) {
-        //     eyeMoveZ = eyeMoveZ * -1;
-        // }
-        //console.log(eyeCoords);
-        //viewMatrix = rotateZ(alpha);
-        //viewMatrix = rotateY(alpha);
-        // viewMatrix = add(translate(eyeMoveX, 0, eyeMoveY), viewMatrix);
-        // eyeMoveX++;
-        // eyeMoveZ++;
-        // viewMatrix = mult(viewMatrix, translate(0, 1, 0));
         alpha -= 3.0;
         alphaY += tY;
         if(alphaY <= -0.25 || alphaY >= 0.25) {
