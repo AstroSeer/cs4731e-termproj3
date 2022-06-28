@@ -31,8 +31,9 @@ var skyType = 0.0;
 var texture;
 
 var minT = 0.0;
-var maxT = 1.0
+var maxT = 1.0;
 
+var keepRender = false;
 
 var lightOn = true;
 var lightPosition = vec4( 0.0, 3.0, 5.0, 0.0 ); 
@@ -52,14 +53,15 @@ var skyTexCoord = [
     [maxT, minT]
 ];
 
-var verts = [];
-verts.push(quad( 1, 0, 3, 2 ));
-verts.push(quad( 2, 3, 7, 6 ));
-verts.push(quad( 3, 0, 4, 7 ));
-verts.push(quad( 6, 5, 1, 2 ));
-verts.push(quad( 4, 5, 6, 7 ));
-verts.push(quad( 5, 4, 0, 1 ));
+// var verts = [];
+// verts.push(quad( 1, 0, 3, 2 ));
+// verts.push(quad( 2, 3, 7, 6 ));
+// verts.push(quad( 3, 0, 4, 7 ));
+// verts.push(quad( 6, 5, 1, 2 ));
+// verts.push(quad( 4, 5, 6, 7 ));
+// verts.push(quad( 5, 4, 0, 1 ));
     
+var alpha = 0.0;
 
 var fov = 60;
 var aspect;
@@ -130,7 +132,7 @@ function setObjects() {
                     transformMatrix = translate(0, 0, 0);
                     break;
                 case 1:
-                    transformMatrix = translate(-2.75, 0, 0);
+                    transformMatrix = translate(2.75, 0, 0);
                     break;
                 case 2:
                     transformMatrix = translate(1, 1, 0);
@@ -182,7 +184,7 @@ function setObjects() {
             gl.uniform4fv(gl.getUniformLocation(program, "ambientProduct"), flatten(ambientProduct));
             gl.uniform4fv(gl.getUniformLocation(program, "lightPosition"), flatten(lightPosition));
             gl.uniform1f(gl.getUniformLocation(program, "shininess"), materialShininess);
-            console.log(stopSign);
+            //console.log(stopSign);
             gl.uniform1f(gl.getUniformLocation(program, "vStopSign"), stopSign);
 
             gl.drawArrays(gl.TRIANGLES, 0, flatten(key[1]).length);
@@ -255,66 +257,77 @@ function processData() {
         configureTexture(image);
     }
 
-    if(cameraMoving) {
-        eyeCoords = add(eyeCoords, vec3(eyeMoveX, eyeMoveY, eyeMoveZ));
-        if(eyeCoords[0] >= 8.0 || eyeCoords[0] <= -8.0) {
-            //console.log("I am in here");
-            eyeMoveX = eyeMoveX * -1;
-        }
-        if(eyeCoords[1] >= 3.5 || eyeCoords[1] <= 2.5) {
-            eyeMoveY = eyeMoveY * -1;
-        }
-        if(eyeCoords[2] >= 8.0 || eyeCoords[2] <= -8.0) {
-            eyeMoveZ = eyeMoveZ * -1;
-        }
-        //console.log(eyeCoords);
-    }
     eye = eyeCoords;
     viewMatrix = lookAt(eye, at , up);
-    //console.log(viewMatrix);
+    if(cameraMoving) {
+        //unit circle
+        
+        // eyeCoords = add(eyeCoords, vec3(eyeMoveX, eyeMoveY, eyeMoveZ));
+        // if(eyeCoords[0] >= 8.0 || eyeCoords[0] <= -8.0) {
+        //     //console.log("I am in here");
+        //     eyeMoveX = eyeMoveX * -1;
+        // }
+        // if(eyeCoords[1] >= 3.5 || eyeCoords[1] <= 2.5) {
+        //     eyeMoveY = eyeMoveY * -1;
+        // }
+        // if(eyeCoords[2] >= 8.0 || eyeCoords[2] <= -8.0) {
+        //     eyeMoveZ = eyeMoveZ * -1;
+        // }
+        //console.log(eyeCoords);
+        //viewMatrix = rotateZ(alpha);
+        //viewMatrix = rotateY(alpha);
+        // viewMatrix = add(translate(eyeMoveX, 0, eyeMoveY), viewMatrix);
+        // eyeMoveX++;
+        // eyeMoveZ++;
+        // viewMatrix = mult(viewMatrix, translate(0, 1, 0));
+        alpha -= 6.0;
+        console.log(alpha);
+    }
+    viewMatrix = mult(viewMatrix, rotateY(alpha));
     projectionMatrix = perspective(fov, aspect, near, far);
+    //console.log(viewMatrix);
 
     gl.uniformMatrix4fv(viewMatrixLoc, false, flatten(viewMatrix) );
     gl.uniformMatrix4fv(projectionMatrixLoc, false, flatten(projectionMatrix) );
     setObjects();
 }
 
-function cube()
-{
-    var verts = [];
-    verts = verts.concat(quad( 1, 0, 3, 2 ));
-    verts = verts.concat(quad( 2, 3, 7, 6 ));
-    verts = verts.concat(quad( 3, 0, 4, 7 ));
-    verts = verts.concat(quad( 6, 5, 1, 2 ));
-    verts = verts.concat(quad( 4, 5, 6, 7 ));
-    verts = verts.concat(quad( 5, 4, 0, 1 ));
-    return verts;
-}
+// function cube()
+// {
+//     var verts = [];
+//     verts = verts.concat(quad( 1, 0, 3, 2 ));
+//     verts = verts.concat(quad( 2, 3, 7, 6 ));
+//     verts = verts.concat(quad( 3, 0, 4, 7 ));
+//     verts = verts.concat(quad( 6, 5, 1, 2 ));
+//     verts = verts.concat(quad( 4, 5, 6, 7 ));
+//     verts = verts.concat(quad( 5, 4, 0, 1 ));
+//     return verts;
+// }
 
-function quad(a, b, c, d)
-{
-    var verts = [];
+// function quad(a, b, c, d)
+// {
+//     var verts = [];
 
-    var vertices = [
-        vec4( -0.5, -0.5,  0.5, 1.0 ),
-        vec4( -0.5,  0.5,  0.5, 1.0 ),
-        vec4(  0.5,  0.5,  0.5, 1.0 ),
-        vec4(  0.5, -0.5,  0.5, 1.0 ),
-        vec4( -0.5, -0.5, -0.5, 1.0 ),
-        vec4( -0.5,  0.5, -0.5, 1.0 ),
-        vec4(  0.5,  0.5, -0.5, 1.0 ),
-        vec4(  0.5, -0.5, -0.5, 1.0 )
-    ];
+//     var vertices = [
+//         vec4( -0.5, -0.5,  0.5, 1.0 ),
+//         vec4( -0.5,  0.5,  0.5, 1.0 ),
+//         vec4(  0.5,  0.5,  0.5, 1.0 ),
+//         vec4(  0.5, -0.5,  0.5, 1.0 ),
+//         vec4( -0.5, -0.5, -0.5, 1.0 ),
+//         vec4( -0.5,  0.5, -0.5, 1.0 ),
+//         vec4(  0.5,  0.5, -0.5, 1.0 ),
+//         vec4(  0.5, -0.5, -0.5, 1.0 )
+//     ];
 
-    var indices = [ a, b, c, a, c, d ];
+//     var indices = [ a, b, c, a, c, d ];
 
-    for ( var i = 0; i < indices.length; ++i )
-    {
-        verts.push( vertices[indices[i]] );
-    }
+//     for ( var i = 0; i < indices.length; ++i )
+//     {
+//         verts.push( vertices[indices[i]] );
+//     }
 
-    return verts;
-}
+//     return verts;
+// }
 
 function configureTexture(image) {
     var tex = gl.createTexture();
@@ -341,7 +354,9 @@ function render() {
             // console.log(diffuseMap);
             // console.log(specularMap);
             console.log(textureURL);
-            processData();    
+            processData();
+            //isBusy = true;
+            //keepRender = true;
         }
         else if(isMaterialLoaded == 0) {
             loadFile("https://web.cs.wpi.edu/~jmcuneo/cs4731/project3_1/street.mtl", "MTL");
@@ -374,6 +389,12 @@ function render() {
             loadFile("https://web.cs.wpi.edu/~jmcuneo/cs4731/project3_1/stopsign.obj", "OBJ");
         }
     }
-
+    if(keepRender) {
+        for(var x = 0; x < objectLoadCap; x++) {
+            for(let key of finalVerts[x]) {
+                gl.drawArrays(gl.TRIANGLES, 0, flatten(key[1]).length);
+            }
+        }
+    }
     requestAnimFrame(render);
 }
