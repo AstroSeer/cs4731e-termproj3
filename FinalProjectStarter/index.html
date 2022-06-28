@@ -36,13 +36,18 @@
             varying vec3 L, N, V;
             varying  vec2 fTexCoord;
             
-            uniform vec4 ambientProduct, diffuseProduct, specularProduct;
+            uniform vec4 lightAmbient, lightDiffuse, lightSpecular;
+            uniform vec4 materialAmbient, materialDiffuse, materialSpecular;
             uniform float shininess;
             uniform sampler2D texture;
             uniform float vStopSign;
 
             void main() {
                 vec3 R = (2.0 * dot(L, N) * N) - L;
+
+                vec4 ambientProduct = lightAmbient * materialAmbient;
+                vec4 specularProduct = lightSpecular * materialSpecular;
+                vec4 diffuseProduct = lightDiffuse * materialDiffuse;
 
                 vec4 diffuse = diffuseProduct * dot(L, N);
                 vec4 ambient = ambientProduct;

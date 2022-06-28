@@ -62,6 +62,8 @@ var skyTexCoord = [
 // verts.push(quad( 5, 4, 0, 1 ));
     
 var alpha = 0.0;
+var alphaY = 0.0;
+var tY = 0.025;
 
 var fov = 60;
 var aspect;
@@ -110,6 +112,13 @@ function main() {
 }
 
 function setObjects() {
+    var transformMatrix;
+    var modelMatrix = gl.getUniformLocation(program, "modelMatrix");
+    var rBuffer = gl.createBuffer();
+    var rPosition = gl.getAttribLocation( program, "vPosition");
+    var vNormal = gl.createBuffer();
+    var vNormalPosition = gl.getAttribLocation( program, "vNormal");
+
     for(var x = 0; x < objectLoadCap; x++) {
         for(let key of finalVerts[x]) {
             //console.log(key);
@@ -119,14 +128,20 @@ function setObjects() {
 
             //console.log(materialDiffuse);
 
-            var diffuseProduct = mult(lightDiffuse, materialDiffuse);
-            var specularProduct = mult(lightSpecular, materialSpecular);
-            var ambientProduct = mult(lightAmbient, materialAmbient);
+            // var diffuseProduct = mult(lightDiffuse, materialDiffuse);
+            // var specularProduct = mult(lightSpecular, materialSpecular);
+            // var ambientProduct = mult(lightAmbient, materialAmbient);
     
+            gl.uniform4fv(gl.getUniformLocation(program, "lightDiffuse"), flatten(lightDiffuse));
+            gl.uniform4fv(gl.getUniformLocation(program, "materialDiffuse"), flatten(materialDiffuse));
+            gl.uniform4fv(gl.getUniformLocation(program, "lightSpecular"), flatten(lightSpecular));
+            gl.uniform4fv(gl.getUniformLocation(program, "materialSpecular"), flatten(materialSpecular));
+            gl.uniform4fv(gl.getUniformLocation(program, "lightAmbient"), flatten(lightAmbient));
+            gl.uniform4fv(gl.getUniformLocation(program, "materialAmbient"), flatten(materialAmbient));
+
             // console.log(diffuseProduct);
             // console.log(specularProduct);
 
-            var transformMatrix;
             switch(x) {
                 case 0:
                     transformMatrix = translate(0, 0, 0);
@@ -144,22 +159,17 @@ function setObjects() {
                     transformMatrix = translate(-1, 0, -4);
                     break;
             }
-            var modelMatrix = gl.getUniformLocation(program, "modelMatrix");
             gl.uniformMatrix4fv(modelMatrix, false, flatten(transformMatrix));
 
-            var rBuffer = gl.createBuffer();
             gl.bindBuffer(gl.ARRAY_BUFFER, rBuffer);
             gl.bufferData(gl.ARRAY_BUFFER, flatten(key[1]), gl.STATIC_DRAW);
 
-            var rPosition = gl.getAttribLocation( program, "vPosition");
             gl.vertexAttribPointer(rPosition, 4, gl.FLOAT, false, 0, 0);
             gl.enableVertexAttribArray(rPosition);
 
-            var vNormal = gl.createBuffer();
             gl.bindBuffer(gl.ARRAY_BUFFER, vNormal);
             gl.bufferData(gl.ARRAY_BUFFER, flatten(finalNorms[x].get(key[0])), gl.STATIC_DRAW);
 
-            var vNormalPosition = gl.getAttribLocation( program, "vNormal");
             gl.vertexAttribPointer(vNormalPosition, 4, gl.FLOAT, false, 0, 0);
             gl.enableVertexAttribArray(vNormalPosition);
             
@@ -179,9 +189,6 @@ function setObjects() {
                 stopSign = 0.0;
             }
 
-            gl.uniform4fv(gl.getUniformLocation(program, "diffuseProduct"), flatten(diffuseProduct));
-            gl.uniform4fv(gl.getUniformLocation(program, "specularProduct"), flatten(specularProduct));
-            gl.uniform4fv(gl.getUniformLocation(program, "ambientProduct"), flatten(ambientProduct));
             gl.uniform4fv(gl.getUniformLocation(program, "lightPosition"), flatten(lightPosition));
             gl.uniform1f(gl.getUniformLocation(program, "shininess"), materialShininess);
             //console.log(stopSign);
@@ -280,10 +287,16 @@ function processData() {
         // eyeMoveX++;
         // eyeMoveZ++;
         // viewMatrix = mult(viewMatrix, translate(0, 1, 0));
-        alpha -= 6.0;
-        console.log(alpha);
+        alpha -= 3.0;
+        alphaY += tY;
+        if(alphaY <= -0.25 || alphaY >= 0.25) {
+            tY = tY * -1;
+        }
+        //console.log(alpha);
+
     }
     viewMatrix = mult(viewMatrix, rotateY(alpha));
+    viewMatrix = mult(viewMatrix, translate(0, alphaY, 0));
     projectionMatrix = perspective(fov, aspect, near, far);
     //console.log(viewMatrix);
 
@@ -353,10 +366,10 @@ function render() {
             // console.log(currMaterial);
             // console.log(diffuseMap);
             // console.log(specularMap);
-            console.log(textureURL);
+            //console.log(textureURL);
             processData();
-            //isBusy = true;
-            //keepRender = true;
+            // isBusy = true;
+            // keepRender = true;
         }
         else if(isMaterialLoaded == 0) {
             loadFile("https://web.cs.wpi.edu/~jmcuneo/cs4731/project3_1/street.mtl", "MTL");
@@ -389,12 +402,20 @@ function render() {
             loadFile("https://web.cs.wpi.edu/~jmcuneo/cs4731/project3_1/stopsign.obj", "OBJ");
         }
     }
-    if(keepRender) {
-        for(var x = 0; x < objectLoadCap; x++) {
-            for(let key of finalVerts[x]) {
-                gl.drawArrays(gl.TRIANGLES, 0, flatten(key[1]).length);
-            }
-        }
-    }
+    // if(keepRender) {
+    //     for(var x = 0; x < objectLoadCap; x++) {
+    //         for(let key of finalVerts[x]) {
+    //             var rBuffer = gl.createBuffer();
+    //             gl.bindBuffer(gl.ARRAY_BUFFER, rBuffer);
+    //             gl.bufferData(gl.ARRAY_BUFFER, flatten(key[1]), gl.STATIC_DRAW);
+
+    //             var rPosition = gl.getAttribLocation( program, "vPosition");
+    //             gl.vertexAttribPointer(rPosition, 4, gl.FLOAT, false, 0, 0);
+    //             gl.enableVertexAttribArray(rPosition);
+
+    //             gl.drawArrays(gl.TRIANGLES, 0, flatten(key[1]).length);
+    //         }
+    //     }
+    // }
     requestAnimFrame(render);
 }

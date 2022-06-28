@@ -275,5 +275,5 @@ function parseMtlFile(mtlFile) {
     // diffuseMap = new Map();
     // finalSpecularMaps.push(specularMap);
     // specularMap = new Map();
-    console.log(textureURL);
+    //console.log(textureURL);
 }
