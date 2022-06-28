@@ -8,12 +8,14 @@ var projectionMatrixLoc;
 var viewMatrix;
 var projectionMatrix;
 var fColor;
+var stopSign = 0.0;
 
 var objectLoadCap = 5;
 var materialLoadCap = 5;
-var keepRender = false;
 
-var texCoordsArray = [];
+var cameraMoving = false;
+
+//var texCoordsArray = [];
 
 var texture;
 
@@ -22,7 +24,7 @@ var maxT = 1.0
 
 
 var lightOn = true;
-var lightPosition = vec4( 0.0, 2.0, 0.0, 0.0 ); 
+var lightPosition = vec4( 0.0, 3.0, 5.0, 0.0 ); 
 var lightAmbient = vec4( 0.1, 0.1, 0.1, 1.0 );
 var lightDiffuse = vec4( 1.0, 1.0, 1.0, 1.0 );
 var lightSpecular = vec4( 1.0, 1.0, 1.0, 1.0 );
@@ -32,12 +34,7 @@ var materialDiffuse;
 var materialSpecular;
 var materialShininess = 20.0;
 
-var texCoord = [
-    vec2(minT, minT),
-    vec2(minT, maxT),
-    vec2(maxT, maxT),
-    vec2(maxT, minT)
-];
+//var texCoord = [];
 
 var fov = 60;
 var aspect;
@@ -47,8 +44,10 @@ var far = 100000;
 var eye;
 var at = vec3(0.0, 0.0, 0.0);
 var up = vec3(0.0, 1.0, 0.0);
-
-
+var eyeCoords = vec3(0.0, 3.0, 8.0);
+var eyeMoveX = 1.0;
+var eyeMoveY = -0.1;
+var eyeMoveZ = -1.0;
 
 /**
  * Sets up WebGL and enables the features this program requires.
@@ -86,7 +85,7 @@ function main() {
 function setObjects() {
     for(var x = 0; x < objectLoadCap; x++) {
         for(let key of finalVerts[x]) {
-            // console.log(key);
+            //console.log(key);
             // console.log(diffuseMap.get(key[0]));
             materialDiffuse = diffuseMap.get(key[0]);
             materialSpecular = specularMap.get(key[0]);
@@ -106,7 +105,7 @@ function setObjects() {
                     transformMatrix = translate(0, 0, 0);
                     break;
                 case 1:
-                    transformMatrix = translate(2.75, 0, 0);
+                    transformMatrix = translate(-2.75, 0, 0);
                     break;
                 case 2:
                     transformMatrix = translate(1, 1, 0);
@@ -136,14 +135,30 @@ function setObjects() {
             var vNormalPosition = gl.getAttribLocation( program, "vNormal");
             gl.vertexAttribPointer(vNormalPosition, 4, gl.FLOAT, false, 0, 0);
             gl.enableVertexAttribArray(vNormalPosition);
+            
+            if(x == 4 && finalUVs[4].get('StopMaterial')) {
+                //console.log(finalUVs[4].get('StopMaterial'));
+                var tBuffer = gl.createBuffer();
+                gl.bindBuffer( gl.ARRAY_BUFFER, tBuffer );
+                gl.bufferData( gl.ARRAY_BUFFER, flatten(finalUVs[4].get('StopMaterial')), gl.STATIC_DRAW );
+            
+                var vTexCoord = gl.getAttribLocation( program, "vTexCoord" );
+                gl.vertexAttribPointer( vTexCoord, 2, gl.FLOAT, false, 0, 0 );
+                gl.enableVertexAttribArray( vTexCoord );
 
-            //console.log(finalNorms);
+                stopSign = 1.0;
+            }
+            else {
+                stopSign = 0.0;
+            }
 
             gl.uniform4fv(gl.getUniformLocation(program, "diffuseProduct"), flatten(diffuseProduct));
             gl.uniform4fv(gl.getUniformLocation(program, "specularProduct"), flatten(specularProduct));
             gl.uniform4fv(gl.getUniformLocation(program, "ambientProduct"), flatten(ambientProduct));
             gl.uniform4fv(gl.getUniformLocation(program, "lightPosition"), flatten(lightPosition));
             gl.uniform1f(gl.getUniformLocation(program, "shininess"), materialShininess);
+            console.log(stopSign);
+            gl.uniform1f(gl.getUniformLocation(program, "vStopSign"), stopSign);
 
             gl.drawArrays(gl.TRIANGLES, 0, flatten(key[1]).length);
         }
@@ -165,21 +180,44 @@ window.addEventListener("keypress", function(event) {
         }
         lightOn = !lightOn;
     }
+    if(code == "c" || code == "C") {
+        cameraMoving = !cameraMoving;
+    }
 });
 
 function processData() {
     viewMatrixLoc = gl.getUniformLocation( program, "viewMatrix" );
     projectionMatrixLoc = gl.getUniformLocation( program, "projectionMatrix" );
 
-    eye = vec3(0, 3, 8);
+    var image = new Image();
+    image.crossOrigin = "";
+    image.src = textureURL;
+    image.onload = function() {
+        configureTexture(image);
+    }
+
+    if(cameraMoving) {
+        eyeCoords = add(eyeCoords, vec3(eyeMoveX, eyeMoveY, eyeMoveZ));
+        if(eyeCoords[0] >= 8.0 || eyeCoords[0] <= -8.0) {
+            //console.log("I am in here");
+            eyeMoveX = eyeMoveX * -1;
+        }
+        if(eyeCoords[1] >= 3.5 || eyeCoords[1] <= 2.5) {
+            eyeMoveY = eyeMoveY * -1;
+        }
+        if(eyeCoords[2] >= 8.0 || eyeCoords[2] <= -8.0) {
+            eyeMoveZ = eyeMoveZ * -1;
+        }
+        //console.log(eyeCoords);
+    }
+    eye = eyeCoords;
     viewMatrix = lookAt(eye, at , up);
+    //console.log(viewMatrix);
     projectionMatrix = perspective(fov, aspect, near, far);
 
     gl.uniformMatrix4fv(viewMatrixLoc, false, flatten(viewMatrix) );
     gl.uniformMatrix4fv(projectionMatrixLoc, false, flatten(projectionMatrix) );
-    //console.log(diffuseMap);
     setObjects();
-    //console.log(finalVerts);
 }
 
 function configureTexture(image) {
@@ -190,7 +228,7 @@ function configureTexture(image) {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, image);
 
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
@@ -203,10 +241,11 @@ function render() {
     gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT );
     if(isBusy == false) {
         if(isObjectLoaded == objectLoadCap && isMaterialLoaded == materialLoadCap) {
-            //console.log(textureURL);
-            //console.log(currMaterial);
+            // console.log(textureURL);
+            // console.log(currMaterial);
             // console.log(diffuseMap);
             // console.log(specularMap);
+            console.log(textureURL);
             processData();    
         }
         else if(isMaterialLoaded == 0) {

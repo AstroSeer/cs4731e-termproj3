@@ -5,12 +5,17 @@
         <title>CS 4731 Final Project</title>
         <script id="vshader" type="x-shader/x-vertex">
             attribute vec4 vPosition;
+            attribute vec4 vNormal;
+            attribute vec2 vTexCoord;
+
             uniform mat4 viewMatrix;
             uniform mat4 modelMatrix;
             uniform mat4 projectionMatrix;
             uniform vec4 lightPosition;
+            uniform sampler2D texture;
+            
             varying vec3 L, N, V;
-            attribute vec4 vNormal;
+            varying vec2 fTexCoord;
 
             void main() {
                 vec3 pos = (viewMatrix * vPosition).xyz;
@@ -18,8 +23,9 @@
 
                 N = normalize(viewMatrix * vNormal).xyz;
 
-
                 V = normalize(-pos);
+
+                fTexCoord = vTexCoord;
                 gl_Position = projectionMatrix * viewMatrix * modelMatrix * vPosition;
             }
         </script>
@@ -28,8 +34,12 @@
             precision mediump float;
 
             varying vec3 L, N, V;
+            varying  vec2 fTexCoord;
+            
             uniform vec4 ambientProduct, diffuseProduct, specularProduct;
             uniform float shininess;
+            uniform sampler2D texture;
+            uniform float vStopSign;
 
             void main() {
                 vec3 R = (2.0 * dot(L, N) * N) - L;
@@ -41,7 +51,12 @@
                 vec4 fColor = diffuse + specular + ambient;
                 fColor.a = 1.0;
 
-                gl_FragColor = fColor;
+                if(vStopSign == 1.0) {
+                    gl_FragColor = texture2D(texture, fTexCoord) * fColor;
+                }
+                else {
+                    gl_FragColor = fColor;
+                }
             }
         </script>
 

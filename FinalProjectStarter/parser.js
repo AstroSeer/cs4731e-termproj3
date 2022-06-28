@@ -127,7 +127,6 @@ function parseObjFile(objFile) {
                     mapNorms.set(currMaterial, faceNormals);
                     mapUVs.set(currMaterial, faceUVs);
                 }
-                
                 // console.log("maps has new stuff at "+currMaterial);
                 // console.log(mapVerts.get(currMaterial).length);
 
@@ -276,4 +275,5 @@ function parseMtlFile(mtlFile) {
     // diffuseMap = new Map();
     // finalSpecularMaps.push(specularMap);
     // specularMap = new Map();
+    console.log(textureURL);
 }
