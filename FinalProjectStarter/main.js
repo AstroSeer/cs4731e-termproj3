@@ -58,6 +58,7 @@ var skyTexCoord = [
 var alpha = 0.0;
 var alphaY = 0.0;
 var tY = 0.025;
+var rot = 10.0;
 
 var fov = 60;
 var aspect;
@@ -68,6 +69,7 @@ var eye;
 var at = vec3(0.0, 0.0, 0.0);
 var up = vec3(0.0, 1.0, 0.0);
 var eyeCoords = vec3(0.0, 3.0, 8.0);
+var defaultCoords = vec3(0.0, 0.0, 0.0);
 var eyeMoveX = 1.0;
 var eyeMoveY = -0.1;
 var eyeMoveZ = -1.0;
@@ -109,22 +111,22 @@ function setObjects() {
     viewMatrixLoc = gl.getUniformLocation( program, "viewMatrix" );
     projectionMatrixLoc = gl.getUniformLocation( program, "projectionMatrix" );
 
-    eye = eyeCoords;
-    viewMatrix = lookAt(eye, at , up);
+    // eye = eyeCoords;
+    // viewMatrix = lookAt(eye, at , up);
     // console.log(viewMatrix);
-    if(cameraMoving && !hoodCamera) {
-        alpha -= 3.0;
-        alphaY += tY;
-        if(alphaY <= -0.25 || alphaY >= 0.25) {
-            tY = tY * -1;
-        }
-        //console.log(alpha);
+    // if(cameraMoving && !hoodCamera) {
+    //     alpha -= 3.0;
+    //     alphaY += tY;
+    //     if(alphaY <= -0.25 || alphaY >= 0.25) {
+    //         tY = tY * -1;
+    //     }
+    //     //console.log(alpha);
 
-    }
+    // }
 
-    viewMatrix = mult(viewMatrix, rotateY(alpha));
-    viewMatrix = mult(viewMatrix, translate(0, alphaY, 0));
-    projectionMatrix = perspective(fov, aspect, near, far);
+    // viewMatrix = mult(viewMatrix, rotateY(alpha));
+    // viewMatrix = mult(viewMatrix, translate(0, alphaY, 0));
+    // projectionMatrix = perspective(fov, aspect, near, far);
     //console.log(viewMatrix);
 
     var transformMatrix;
@@ -152,13 +154,31 @@ function setObjects() {
                     transformMatrix = translate(0, 0, 0);
                     break;
                 case 1:
-                    transformMatrix = translate(2.85, -0.25, 0);
-                    transformMatrix = mult(transformMatrix, rotateY(0));
+                    transformMatrix = translate(2.85, -0.25, -2);
+                    transformMatrix = mult(transformMatrix, rotateY(rot));
                     parentMatrix.push(transformMatrix);
+                    // if(hoodCamera) {
+                    //     eye = defaultCoords;
+                    //     var frontCar = vec3(0.1, 0.05, -10.0);
+                    //     viewMatrix = lookAt(eye, frontCar, up);
+                    //     viewMatrix = mult(viewMatrix, transformMatrix);
+                    //     viewMatrix = mult(viewMatrix, translate(0.2, -0.4, 0.85))
+                    //     viewMatrix = mult(viewMatrix, rotateY(180 - rot));
+                    //     //rot = rot - 1.0;
+                    // }
                     break;
                 case 2:
                     parentMatrix.push(parentMatrix[0]);
                     transformMatrix = mult(parentMatrix[0], translate(0.2, 0.70, 1.5));
+                    if(hoodCamera) {
+                        eye = defaultCoords;
+                        var frontCar = vec3(0.1, 0.05, -10.0);
+                        viewMatrix = lookAt(eye, frontCar, up);
+                        viewMatrix = mult(viewMatrix, transformMatrix);
+                        viewMatrix = mult(viewMatrix, translate(0.0, -1.2, -0.5))
+                        viewMatrix = mult(viewMatrix, rotateY(180 - rot));
+                        //rot = rot - 1.0;
+                    }
                     //parentMatrix.pop();
                     break;
                 case 3:
@@ -183,7 +203,7 @@ function setObjects() {
 
             gl.vertexAttribPointer(vNormalPosition, 4, gl.FLOAT, false, 0, 0);
             gl.enableVertexAttribArray(vNormalPosition);
-            
+            //rot = rot-0.01;
             if(x == 4 && finalUVs[4].get('StopMaterial')) {
                 var tBuffer = gl.createBuffer();
                 gl.bindBuffer( gl.ARRAY_BUFFER, tBuffer );
@@ -247,31 +267,26 @@ function processData() {
         configureTexture(image);
     }
 
-    // eye = eyeCoords;
-    // viewMatrix = lookAt(eye, at , up);
-    // // console.log(viewMatrix);
-    // if(cameraMoving && !hoodCamera) {
-    //     alpha -= 3.0;
-    //     alphaY += tY;
-    //     if(alphaY <= -0.25 || alphaY >= 0.25) {
-    //         tY = tY * -1;
-    //     }
-    //     //console.log(alpha);
-
-    // }
-    // if(hoodCamera) {
-
-    // }
-    // else {
-
-    // }
-    // viewMatrix = mult(viewMatrix, rotateY(alpha));
-    // viewMatrix = mult(viewMatrix, translate(0, alphaY, 0));
-    // projectionMatrix = perspective(fov, aspect, near, far);
-    // //console.log(viewMatrix);
-
-    // gl.uniformMatrix4fv(viewMatrixLoc, false, flatten(viewMatrix) );
-    // gl.uniformMatrix4fv(projectionMatrixLoc, false, flatten(projectionMatrix) );
+    if(!hoodCamera) {
+        eye = eyeCoords;
+        viewMatrix = lookAt(eye, at , up);
+        // console.log(viewMatrix);
+        if(cameraMoving && !hoodCamera) {
+            alpha -= 3.0;
+            alphaY += tY;
+            if(alphaY <= -0.25 || alphaY >= 0.25) {
+                tY = tY * -1;
+            }
+        //console.log(alpha);
+        }
+        viewMatrix = mult(viewMatrix, rotateY(alpha));
+        viewMatrix = mult(viewMatrix, translate(0, alphaY, 0));
+        projectionMatrix = perspective(fov, aspect, near, far);
+        //console.log(viewMatrix);
+    
+        gl.uniformMatrix4fv(viewMatrixLoc, false, flatten(viewMatrix) );
+        gl.uniformMatrix4fv(projectionMatrixLoc, false, flatten(projectionMatrix) );
+    }
     setObjects();
 }
 
