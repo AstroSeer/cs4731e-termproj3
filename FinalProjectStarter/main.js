@@ -106,6 +106,27 @@ function main() {
 }
 
 function setObjects() {
+    viewMatrixLoc = gl.getUniformLocation( program, "viewMatrix" );
+    projectionMatrixLoc = gl.getUniformLocation( program, "projectionMatrix" );
+
+    eye = eyeCoords;
+    viewMatrix = lookAt(eye, at , up);
+    // console.log(viewMatrix);
+    if(cameraMoving && !hoodCamera) {
+        alpha -= 3.0;
+        alphaY += tY;
+        if(alphaY <= -0.25 || alphaY >= 0.25) {
+            tY = tY * -1;
+        }
+        //console.log(alpha);
+
+    }
+
+    viewMatrix = mult(viewMatrix, rotateY(alpha));
+    viewMatrix = mult(viewMatrix, translate(0, alphaY, 0));
+    projectionMatrix = perspective(fov, aspect, near, far);
+    //console.log(viewMatrix);
+
     var transformMatrix;
     var modelMatrix = gl.getUniformLocation(program, "modelMatrix");
     var rBuffer = gl.createBuffer();
@@ -138,7 +159,7 @@ function setObjects() {
                 case 2:
                     parentMatrix.push(parentMatrix[0]);
                     transformMatrix = mult(parentMatrix[0], translate(0.2, 0.70, 1.5));
-                    viewMatrix = mult(parentMatrix[0], translate(0.0, 1.0, 1.0));
+                    //viewMatrix = mult(transformMatrix, viewMatrix);
                     //parentMatrix.pop();
                     break;
                 case 3:
@@ -177,6 +198,9 @@ function setObjects() {
                 stopSign = 0.0;
             }
 
+            gl.uniformMatrix4fv(viewMatrixLoc, false, flatten(viewMatrix) );
+            gl.uniformMatrix4fv(projectionMatrixLoc, false, flatten(projectionMatrix) );
+
             gl.uniform4fv(gl.getUniformLocation(program, "lightPosition"), flatten(lightPosition));
             gl.uniform1f(gl.getUniformLocation(program, "shininess"), materialShininess);
             gl.uniform1f(gl.getUniformLocation(program, "vStopSign"), stopSign);
@@ -212,8 +236,8 @@ window.addEventListener("keypress", function(event) {
 });
 
 function processData() {
-    viewMatrixLoc = gl.getUniformLocation( program, "viewMatrix" );
-    projectionMatrixLoc = gl.getUniformLocation( program, "projectionMatrix" );
+    // viewMatrixLoc = gl.getUniformLocation( program, "viewMatrix" );
+    // projectionMatrixLoc = gl.getUniformLocation( program, "projectionMatrix" );
 
     var image = new Image();
     image.crossOrigin = "";
@@ -222,24 +246,31 @@ function processData() {
         configureTexture(image);
     }
 
-    eye = eyeCoords;
-    viewMatrix = lookAt(eye, at , up);
-    if(cameraMoving) {
-        alpha -= 3.0;
-        alphaY += tY;
-        if(alphaY <= -0.25 || alphaY >= 0.25) {
-            tY = tY * -1;
-        }
-        //console.log(alpha);
+    // eye = eyeCoords;
+    // viewMatrix = lookAt(eye, at , up);
+    // // console.log(viewMatrix);
+    // if(cameraMoving && !hoodCamera) {
+    //     alpha -= 3.0;
+    //     alphaY += tY;
+    //     if(alphaY <= -0.25 || alphaY >= 0.25) {
+    //         tY = tY * -1;
+    //     }
+    //     //console.log(alpha);
 
-    }
-    viewMatrix = mult(viewMatrix, rotateY(alpha));
-    viewMatrix = mult(viewMatrix, translate(0, alphaY, 0));
-    projectionMatrix = perspective(fov, aspect, near, far);
-    //console.log(viewMatrix);
+    // }
+    // if(hoodCamera) {
 
-    gl.uniformMatrix4fv(viewMatrixLoc, false, flatten(viewMatrix) );
-    gl.uniformMatrix4fv(projectionMatrixLoc, false, flatten(projectionMatrix) );
+    // }
+    // else {
+
+    // }
+    // viewMatrix = mult(viewMatrix, rotateY(alpha));
+    // viewMatrix = mult(viewMatrix, translate(0, alphaY, 0));
+    // projectionMatrix = perspective(fov, aspect, near, far);
+    // //console.log(viewMatrix);
+
+    // gl.uniformMatrix4fv(viewMatrixLoc, false, flatten(viewMatrix) );
+    // gl.uniformMatrix4fv(projectionMatrixLoc, false, flatten(projectionMatrix) );
     setObjects();
 }
 
