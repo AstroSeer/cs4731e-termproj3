@@ -15,15 +15,52 @@ var materialLoadCap = 5;
 
 var cameraMoving = false;
 
-//var texCoordsArray = [];
-// var skyBox = [
-//     "https://web.cs.wpi.edu/~jmcuneo/cs4731/project3_1/skybox_negx.png",
-//     "https://web.cs.wpi.edu/~jmcuneo/cs4731/project3_1/skybox_negy.png",
-//     "https://web.cs.wpi.edu/~jmcuneo/cs4731/project3_1/skybox_negz.png",
-//     "https://web.cs.wpi.edu/~jmcuneo/cs4731/project3_1/skybox_posx.png",
-//     "https://web.cs.wpi.edu/~jmcuneo/cs4731/project3_1/skybox_posy.png",
-//     "https://web.cs.wpi.edu/~jmcuneo/cs4731/project3_1/skybox_posz.png"
-// ];
+var black = new Uint8Array([255, 0, 0, 255]);
+
+var skyURLS = [
+    "https://web.cs.wpi.edu/~jmcuneo/cs4731/project3_1/skybox_posx.png",
+    "https://web.cs.wpi.edu/~jmcuneo/cs4731/project3_1/skybox_negx.png",
+    "https://web.cs.wpi.edu/~jmcuneo/cs4731/project3_1/skybox_posy.png",
+    "https://web.cs.wpi.edu/~jmcuneo/cs4731/project3_1/skybox_negy.png",
+    "https://web.cs.wpi.edu/~jmcuneo/cs4731/project3_1/skybox_posz.png",
+    "https://web.cs.wpi.edu/~jmcuneo/cs4731/project3_1/skybox_negz.png"
+];
+var skyIMG1;
+var skyIMG2;
+var skyIMG3;
+var skyIMG4;
+var skyIMG5;
+var skyIMG6;
+
+// const skyFaces = [
+//     {
+//       target: gl.TEXTURE_CUBE_MAP_POSITIVE_X,
+//       url: "https://web.cs.wpi.edu/~jmcuneo/cs4731/project3_1/skybox_posx.png",
+//     },
+//     {
+//       target: gl.TEXTURE_CUBE_MAP_NEGATIVE_X,
+//       url: "https://web.cs.wpi.edu/~jmcuneo/cs4731/project3_1/skybox_negx.png",
+//     },
+//     {
+//       target: gl.TEXTURE_CUBE_MAP_POSITIVE_Y,
+//       url: "https://web.cs.wpi.edu/~jmcuneo/cs4731/project3_1/skybox_posy.png",
+//     },
+//     {
+//       target: gl.TEXTURE_CUBE_MAP_NEGATIVE_Y,
+//       url: "https://web.cs.wpi.edu/~jmcuneo/cs4731/project3_1/skybox_negy.png",
+//     },
+//     {
+//       target: gl.TEXTURE_CUBE_MAP_POSITIVE_Z,
+//       url: "https://web.cs.wpi.edu/~jmcuneo/cs4731/project3_1/skybox_posz.png",
+//     },
+//     {
+//       target: gl.TEXTURE_CUBE_MAP_NEGATIVE_Z,
+//       url: "https://web.cs.wpi.edu/~jmcuneo/cs4731/project3_1/skybox_negz.png",
+//     },
+//   ];
+
+var cubeMap;
+
 var skyBoxOn = false;
 var skyType = 0.0;
 
@@ -53,14 +90,6 @@ var skyTexCoord = [
     [maxT, minT]
 ];
 
-// var verts = [];
-// verts.push(quad( 1, 0, 3, 2 ));
-// verts.push(quad( 2, 3, 7, 6 ));
-// verts.push(quad( 3, 0, 4, 7 ));
-// verts.push(quad( 6, 5, 1, 2 ));
-// verts.push(quad( 4, 5, 6, 7 ));
-// verts.push(quad( 5, 4, 0, 1 ));
-    
 var alpha = 0.0;
 var alphaY = 0.0;
 var tY = 0.025;
@@ -108,6 +137,43 @@ function main() {
 
     gl.enable(gl.DEPTH_TEST);
     gl.enable(gl.CULL_FACE);
+
+    skyIMG1 = new Image();
+    skyIMG1.crossOrigin = "";
+    skyIMG1.src = skyURLS[0];
+    skyIMG1.onload = function() {
+        console.log(skyIMG1);
+    }
+    skyIMG2 = new Image();
+    skyIMG2.crossOrigin = "";
+    skyIMG2.src = skyURLS[1];
+    skyIMG2.onload = function() {
+        console.log(skyIMG2);
+    }
+    skyIMG3 = new Image();
+    skyIMG3.crossOrigin = "";
+    skyIMG3.src = skyURLS[2];
+    skyIMG3.onload = function() {
+        console.log(skyIMG3);
+    }
+    skyIMG4 = new Image();
+    skyIMG4.crossOrigin = "";
+    skyIMG4.src = skyURLS[3];
+    skyIMG4.onload = function() {
+        console.log(skyIMG4);
+    }
+    skyIMG5 = new Image();
+    skyIMG5.crossOrigin = "";
+    skyIMG5.src = skyURLS[4];
+    skyIMG5.onload = function() {
+        console.log(skyIMG5);
+    }
+    skyIMG6 = new Image();
+    skyIMG6.crossOrigin = "";
+    skyIMG6.src = skyURLS[5];
+    skyIMG6.onload = function() {
+        console.log(skyIMG6);
+    }
     render();
 }
 
@@ -137,7 +203,7 @@ function setObjects() {
                     break;
                 case 1:
                     transformMatrix = translate(2.85, -0.25, 0);
-                    transformMatrix = mult(transformMatrix, rotateY(180));
+                    //transformMatrix = mult(transformMatrix, rotateY(180));
                     break;
                 case 2:
                     transformMatrix = translate(1, 1, 0);
@@ -165,6 +231,7 @@ function setObjects() {
             
             if(x == 4 && finalUVs[4].get('StopMaterial')) {
                 var tBuffer = gl.createBuffer();
+                gl.activeTexture(gl.TEXTURE2);
                 gl.bindBuffer( gl.ARRAY_BUFFER, tBuffer );
                 gl.bufferData( gl.ARRAY_BUFFER, flatten(finalUVs[4].get('StopMaterial')), gl.STATIC_DRAW );
             
@@ -209,40 +276,68 @@ window.addEventListener("keypress", function(event) {
     }
 });
 
+function configureCubeMap() {
+    console.log("in cubeMap config");
+    //Initialize
+    cubeMap = gl.createTexture();
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_CUBE_MAP, cubeMap);
+
+    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+    //Create a 2x2 texture
+    gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, black);
+    gl.texImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_X, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, black);
+    gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Y, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, black);
+    gl.texImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, black);
+    gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Z, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, black);
+    gl.texImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, black);
+
+
+    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+
+    gl.uniform1i(gl.getUniformLocation(program, "texMap"), 1);
+}
+
+function configureCubeMapImage(i1, i2, i3, i4, i5, i6) {
+
+    //console.log(image);
+    //Initialize
+    cubeMap = gl.createTexture();
+    gl.activeTexture(gl.TEXTURE1);
+    gl.bindTexture(gl.TEXTURE_CUBE_MAP, cubeMap);
+
+    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+    //Create a 2x2 texture
+    gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, i1);
+    gl.texImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_X, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, i2);
+    gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Y, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, i3);
+    gl.texImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, i4);
+    gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Z, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, i5);
+    gl.texImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, i6);
+
+    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+
+    gl.uniform1i(gl.getUniformLocation(program, "texMap"), 2);
+}
+
 function processData() {
     viewMatrixLoc = gl.getUniformLocation( program, "viewMatrix" );
     projectionMatrixLoc = gl.getUniformLocation( program, "projectionMatrix" );
 
-    // if(skyBoxOn) {
-    //     skyType = 2.0
-    //     for(var v = 0; v < skyBox.length; v++) {
-    //         var sky = new Image();
-    //         sky.crossOrigin = "";
-    //         sky.src = skyBox[v];
-    //         sky.onload = function() {
-    //             configureTexture(image);
-    //         }
-
-    //         var sBuffer = gl.createBuffer();
-    //         gl.bindBuffer(gl.ARRAY_BUFFER, sBuffer);
-    //         gl.bufferData(gl.ARRAY_BUFFER, flatten(verts[v]), gl.STATIC_DRAW);
-
-    //         var sPosition = gl.getAttribLocation( program, "vPosition");
-    //         gl.vertexAttribPointer(sPosition, 4, gl.FLOAT, false, 0, 0);
-    //         gl.enableVertexAttribArray(sPosition);
-
-    //         var tBuffer = gl.createBuffer();
-    //         gl.bindBuffer( gl.ARRAY_BUFFER, tBuffer );
-    //         gl.bufferData( gl.ARRAY_BUFFER, flatten(skyTexCoord), gl.STATIC_DRAW );
-        
-    //         var vTexCoord = gl.getAttribLocation( program, "vTexCoord" );
-    //         gl.vertexAttribPointer( vTexCoord, 2, gl.FLOAT, false, 0, 0 );
-    //         gl.enableVertexAttribArray( vTexCoord );
-            
-    //         gl.uniform1f(gl.getUniformLocation(program, "vSkyType"), skyType);
-    //     }
-    // }
-    // skyType = 0.0;
+    if(skyBoxOn) {
+        skyType = 2.0;
+        configureCubeMap();
+        configureCubeMapImage(skyIMG1, skyIMG2, skyIMG3, skyIMG4, skyIMG5, skyIMG6);
+        gl.uniform1f(gl.getUniformLocation(program, "vSkyType"), skyType);
+    }
+    skyType = 0.0;
+    gl.uniform1f(gl.getUniformLocation(program, "vSkyType"), skyType);
 
     var image = new Image();
     image.crossOrigin = "";
@@ -271,43 +366,6 @@ function processData() {
     gl.uniformMatrix4fv(projectionMatrixLoc, false, flatten(projectionMatrix) );
     setObjects();
 }
-
-// function cube()
-// {
-//     var verts = [];
-//     verts = verts.concat(quad( 1, 0, 3, 2 ));
-//     verts = verts.concat(quad( 2, 3, 7, 6 ));
-//     verts = verts.concat(quad( 3, 0, 4, 7 ));
-//     verts = verts.concat(quad( 6, 5, 1, 2 ));
-//     verts = verts.concat(quad( 4, 5, 6, 7 ));
-//     verts = verts.concat(quad( 5, 4, 0, 1 ));
-//     return verts;
-// }
-
-// function quad(a, b, c, d)
-// {
-//     var verts = [];
-
-//     var vertices = [
-//         vec4( -0.5, -0.5,  0.5, 1.0 ),
-//         vec4( -0.5,  0.5,  0.5, 1.0 ),
-//         vec4(  0.5,  0.5,  0.5, 1.0 ),
-//         vec4(  0.5, -0.5,  0.5, 1.0 ),
-//         vec4( -0.5, -0.5, -0.5, 1.0 ),
-//         vec4( -0.5,  0.5, -0.5, 1.0 ),
-//         vec4(  0.5,  0.5, -0.5, 1.0 ),
-//         vec4(  0.5, -0.5, -0.5, 1.0 )
-//     ];
-
-//     var indices = [ a, b, c, a, c, d ];
-
-//     for ( var i = 0; i < indices.length; ++i )
-//     {
-//         verts.push( vertices[indices[i]] );
-//     }
-
-//     return verts;
-// }
 
 function configureTexture(image) {
     var tex = gl.createTexture();

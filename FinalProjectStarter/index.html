@@ -13,9 +13,10 @@
             uniform mat4 projectionMatrix;
             uniform vec4 lightPosition;
             uniform sampler2D texture;
-            
+
             varying vec3 L, N, V;
             varying vec2 fTexCoord;
+            varying vec3 refl;
 
             void main() {
                 vec3 pos = (viewMatrix * vPosition).xyz;
@@ -24,6 +25,8 @@
                 N = normalize(viewMatrix * vNormal).xyz;
 
                 V = normalize(-pos);
+
+                refl = refract(pos, N, 0.95);
 
                 fTexCoord = vTexCoord;
                 gl_Position = projectionMatrix * viewMatrix * modelMatrix * vPosition;
@@ -35,12 +38,15 @@
 
             varying vec3 L, N, V;
             varying  vec2 fTexCoord;
+            varying vec3 refl;
             
             uniform vec4 lightAmbient, lightDiffuse, lightSpecular;
             uniform vec4 materialAmbient, materialDiffuse, materialSpecular;
             uniform float shininess;
             uniform sampler2D texture;
             uniform float vStopSign;
+            uniform float vSkyType;
+            uniform samplerCube texMap;
 
             void main() {
                 vec3 R = (2.0 * dot(L, N) * N) - L;
@@ -56,6 +62,9 @@
                 vec4 fColor = diffuse + specular + ambient;
                 fColor.a = 1.0;
 
+                if(vSkyType == 2.0) {
+                    gl_FragColor = textureCube(texMap, refl);
+                }
                 if(vStopSign == 1.0) {
                     gl_FragColor = texture2D(texture, fTexCoord) * fColor;
                 }
