@@ -53,13 +53,6 @@ var skyTexCoord = [
     [maxT, minT]
 ];
 
-// var verts = [];
-// verts.push(quad( 1, 0, 3, 2 ));
-// verts.push(quad( 2, 3, 7, 6 ));
-// verts.push(quad( 3, 0, 4, 7 ));
-// verts.push(quad( 6, 5, 1, 2 ));
-// verts.push(quad( 4, 5, 6, 7 ));
-// verts.push(quad( 5, 4, 0, 1 ));
     
 var alpha = 0.0;
 var alphaY = 0.0;
@@ -137,7 +130,7 @@ function setObjects() {
                     break;
                 case 1:
                     transformMatrix = translate(2.85, -0.25, 0);
-                    transformMatrix = mult(transformMatrix, rotateY(180));
+                    //transformMatrix = mult(transformMatrix, rotateY(180));
                     break;
                 case 2:
                     transformMatrix = translate(1, 1, 0);
@@ -213,37 +206,6 @@ function processData() {
     viewMatrixLoc = gl.getUniformLocation( program, "viewMatrix" );
     projectionMatrixLoc = gl.getUniformLocation( program, "projectionMatrix" );
 
-    // if(skyBoxOn) {
-    //     skyType = 2.0
-    //     for(var v = 0; v < skyBox.length; v++) {
-    //         var sky = new Image();
-    //         sky.crossOrigin = "";
-    //         sky.src = skyBox[v];
-    //         sky.onload = function() {
-    //             configureTexture(image);
-    //         }
-
-    //         var sBuffer = gl.createBuffer();
-    //         gl.bindBuffer(gl.ARRAY_BUFFER, sBuffer);
-    //         gl.bufferData(gl.ARRAY_BUFFER, flatten(verts[v]), gl.STATIC_DRAW);
-
-    //         var sPosition = gl.getAttribLocation( program, "vPosition");
-    //         gl.vertexAttribPointer(sPosition, 4, gl.FLOAT, false, 0, 0);
-    //         gl.enableVertexAttribArray(sPosition);
-
-    //         var tBuffer = gl.createBuffer();
-    //         gl.bindBuffer( gl.ARRAY_BUFFER, tBuffer );
-    //         gl.bufferData( gl.ARRAY_BUFFER, flatten(skyTexCoord), gl.STATIC_DRAW );
-        
-    //         var vTexCoord = gl.getAttribLocation( program, "vTexCoord" );
-    //         gl.vertexAttribPointer( vTexCoord, 2, gl.FLOAT, false, 0, 0 );
-    //         gl.enableVertexAttribArray( vTexCoord );
-            
-    //         gl.uniform1f(gl.getUniformLocation(program, "vSkyType"), skyType);
-    //     }
-    // }
-    // skyType = 0.0;
-
     var image = new Image();
     image.crossOrigin = "";
     image.src = textureURL;
@@ -272,43 +234,6 @@ function processData() {
     setObjects();
 }
 
-// function cube()
-// {
-//     var verts = [];
-//     verts = verts.concat(quad( 1, 0, 3, 2 ));
-//     verts = verts.concat(quad( 2, 3, 7, 6 ));
-//     verts = verts.concat(quad( 3, 0, 4, 7 ));
-//     verts = verts.concat(quad( 6, 5, 1, 2 ));
-//     verts = verts.concat(quad( 4, 5, 6, 7 ));
-//     verts = verts.concat(quad( 5, 4, 0, 1 ));
-//     return verts;
-// }
-
-// function quad(a, b, c, d)
-// {
-//     var verts = [];
-
-//     var vertices = [
-//         vec4( -0.5, -0.5,  0.5, 1.0 ),
-//         vec4( -0.5,  0.5,  0.5, 1.0 ),
-//         vec4(  0.5,  0.5,  0.5, 1.0 ),
-//         vec4(  0.5, -0.5,  0.5, 1.0 ),
-//         vec4( -0.5, -0.5, -0.5, 1.0 ),
-//         vec4( -0.5,  0.5, -0.5, 1.0 ),
-//         vec4(  0.5,  0.5, -0.5, 1.0 ),
-//         vec4(  0.5, -0.5, -0.5, 1.0 )
-//     ];
-
-//     var indices = [ a, b, c, a, c, d ];
-
-//     for ( var i = 0; i < indices.length; ++i )
-//     {
-//         verts.push( vertices[indices[i]] );
-//     }
-
-//     return verts;
-// }
-
 function configureTexture(image) {
     var tex = gl.createTexture();
     gl.activeTexture(gl.TEXTURE0);
@@ -329,11 +254,6 @@ function render() {
     gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT );
     if(isBusy == false) {
         if(isObjectLoaded == objectLoadCap && isMaterialLoaded == materialLoadCap) {
-            // console.log(textureURL);
-            // console.log(currMaterial);
-            // console.log(diffuseMap);
-            // console.log(specularMap);
-            //console.log(textureURL);
             processData();
             // isBusy = true;
             // keepRender = true;
@@ -369,20 +289,5 @@ function render() {
             loadFile("https://web.cs.wpi.edu/~jmcuneo/cs4731/project3_1/stopsign.obj", "OBJ");
         }
     }
-    // if(keepRender) {
-    //     for(var x = 0; x < objectLoadCap; x++) {
-    //         for(let key of finalVerts[x]) {
-    //             var rBuffer = gl.createBuffer();
-    //             gl.bindBuffer(gl.ARRAY_BUFFER, rBuffer);
-    //             gl.bufferData(gl.ARRAY_BUFFER, flatten(key[1]), gl.STATIC_DRAW);
-
-    //             var rPosition = gl.getAttribLocation( program, "vPosition");
-    //             gl.vertexAttribPointer(rPosition, 4, gl.FLOAT, false, 0, 0);
-    //             gl.enableVertexAttribArray(rPosition);
-
-    //             gl.drawArrays(gl.TRIANGLES, 0, flatten(key[1]).length);
-    //         }
-    //     }
-    // }
     requestAnimFrame(render);
 }
