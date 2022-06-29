@@ -27,6 +27,8 @@ var cameraMoving = false;
 var skyBoxOn = false;
 var skyType = 0.0;
 
+var shadowOn = false;
+var sm;
 
 var texture;
 
@@ -62,6 +64,7 @@ var fov = 60;
 var aspect;
 var near = 0.1;
 var far = 100000;
+var vShadows = 0.0;
 
 var eye;
 var at = vec3(0.0, 0.0, 0.0);
@@ -98,6 +101,9 @@ function main() {
     gl.useProgram(program);
 
     aspect = canvas.width/canvas.height;
+    sm = mat4();
+    sm[3][3] = 0;
+    sm[3][2] = -1/lightPosition[1];
 
     gl.enable(gl.DEPTH_TEST);
     gl.enable(gl.CULL_FACE);
@@ -176,6 +182,22 @@ function setObjects() {
             gl.uniform1f(gl.getUniformLocation(program, "vStopSign"), stopSign);
 
             gl.drawArrays(gl.TRIANGLES, 0, flatten(key[1]).length);
+            stopSign = 0.0;
+
+            if(shadowOn && lightOn) {
+                vShadows = 1.0;
+                modelMatrix = translate(lightPosition[0], lightPosition[1], lightPosition[2]);
+                modelMatrix = mult(modelMatrix, sm);
+                modelMatrix = mult(modelMatrix, translate(-lightPosition[0], -lightPosition[1], -lightPosition[2]))
+
+                var viewMatrix2 = mult(lookAt(eye, at, up), modelMatrix);
+
+                viewMatrixLoc = gl.getUniformLocation( program, "viewMatrix" );
+                gl.uniformMatrix4fv(viewMatrixLoc, false, flatten(viewMatrix2));
+                gl.uniform1f(gl.getUniformLocation(program, "vShadows"), vShadows);
+                gl.drawArrays(gl.TRIANGLES, 0, flatten(key[1]).length);
+                vShadows = 0.0;
+            }
         }
     }
 }
@@ -199,6 +221,9 @@ window.addEventListener("keypress", function(event) {
     }
     if(code == "e" || code == "E") {
         skyBoxOn = !skyBoxOn;
+    }
+    if(code == "s" || code == "S") {
+        shadowOn = !shadowOn;
     }
 });
 
