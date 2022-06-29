@@ -28,6 +28,7 @@ var skyBoxOn = false;
 var skyType = 0.0;
 
 var hoodCamera = false;
+var engageCarMove = false;
 
 var texture;
 
@@ -58,7 +59,7 @@ var skyTexCoord = [
 var alpha = 0.0;
 var alphaY = 0.0;
 var tY = 0.025;
-var rot = 10.0;
+var rot = 0.0;
 
 var fov = 60;
 var aspect;
@@ -73,6 +74,8 @@ var defaultCoords = vec3(0.0, 0.0, 0.0);
 var eyeMoveX = 1.0;
 var eyeMoveY = -0.1;
 var eyeMoveZ = -1.0;
+var moveCar = [2.85, 0.0];
+var directionCar = 1;
 
 /**
  * Sets up WebGL and enables the features this program requires.
@@ -154,7 +157,7 @@ function setObjects() {
                     transformMatrix = translate(0, 0, 0);
                     break;
                 case 1:
-                    transformMatrix = translate(2.85, -0.25, -2);
+                    transformMatrix = translate(moveCar[0], -0.25, moveCar[1]);
                     transformMatrix = mult(transformMatrix, rotateY(rot));
                     parentMatrix.push(transformMatrix);
                     // if(hoodCamera) {
@@ -168,16 +171,18 @@ function setObjects() {
                     // }
                     break;
                 case 2:
-                    parentMatrix.push(parentMatrix[0]);
                     transformMatrix = mult(parentMatrix[0], translate(0.2, 0.70, 1.5));
+                    parentMatrix.push(transformMatrix);
                     if(hoodCamera) {
-                        eye = defaultCoords;
-                        var frontCar = vec3(0.1, 0.05, -10.0);
-                        viewMatrix = lookAt(eye, frontCar, up);
-                        viewMatrix = mult(viewMatrix, transformMatrix);
-                        viewMatrix = mult(viewMatrix, translate(0.0, -1.2, -0.5))
-                        viewMatrix = mult(viewMatrix, rotateY(180 - rot));
-                        //rot = rot - 1.0;
+                        // eye = defaultCoords;
+                        // var frontCar = vec3(0.1, 0.05, -10.0);
+                        // viewMatrix = lookAt(eye, frontCar, up);
+                        // viewMatrix = mult(viewMatrix, transformMatrix);
+                        // viewMatrix = mult(viewMatrix, translate(0.0, -1.2, -0.5))
+                        // viewMatrix = mult(viewMatrix, rotateY(180 - rot));
+                        viewMatrix = parentMatrix[0];
+                        viewMatrix = mult(viewMatrix, rotateY(180));
+                        viewMatrix = mult(viewMatrix, translate(-0.2, -0.4, -1.0));
                     }
                     //parentMatrix.pop();
                     break;
@@ -195,8 +200,6 @@ function setObjects() {
 
             gl.vertexAttribPointer(rPosition, 4, gl.FLOAT, false, 0, 0);
             gl.enableVertexAttribArray(rPosition);
-
-            console.log(rPosition);
 
             gl.bindBuffer(gl.ARRAY_BUFFER, vNormal);
             gl.bufferData(gl.ARRAY_BUFFER, flatten(finalNorms[x].get(key[0])), gl.STATIC_DRAW);
@@ -229,6 +232,46 @@ function setObjects() {
             gl.drawArrays(gl.TRIANGLES, 0, flatten(key[1]).length);
         }
     }
+    if(engageCarMove) {
+        if(moveCar[0] >= 2.8 && moveCar[1] >= 2.8) {
+            rot = rot - 90;
+            moveCar[0] = moveCar[0] - 0.2;
+            directionCar = 2;
+        }
+        else if(moveCar[0] <= -2.8 && moveCar[1] >= 2.8) {
+            rot = rot - 90;
+            moveCar[1] = moveCar[1] - 0.2;
+            directionCar = 3;
+        }
+        else if(moveCar[0] <= -2.8 && moveCar[1] <= -2.8) {
+            rot = rot - 90;
+            moveCar[0] = moveCar[0] + 0.2;
+            directionCar = 4;
+        }
+        else if(moveCar[0] >= 2.8 && moveCar[1] <= -2.8) {
+            rot = rot - 90;
+            moveCar[1] = moveCar[1] + 0.2;
+            directionCar = 1;
+        }
+        else {
+            switch(directionCar) {
+                case 1:
+                    moveCar[1] = moveCar[1] + 0.1;
+                    break;
+                case 2:
+                    moveCar[0] = moveCar[0] - 0.1;
+                    break;
+                case 3:
+                    moveCar[1] = moveCar[1] - 0.1;
+                    break;
+                case 4:
+                    moveCar[0] = moveCar[0] + 0.1;
+                    break;
+            }
+        }
+    }
+    console.log(moveCar);
+    console.log(directionCar);
 }
 
 window.addEventListener("keypress", function(event) {
@@ -253,6 +296,9 @@ window.addEventListener("keypress", function(event) {
     }
     if(code == "d" || code == "D") {
         hoodCamera = !hoodCamera;
+    }
+    if(code == "m" || code == "M") {
+        engageCarMove = !engageCarMove;
     }
 });
 
