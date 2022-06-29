@@ -139,7 +139,7 @@ function setObjects() {
         for(let key of finalVerts[x]) {
             materialDiffuse = diffuseMap.get(key[0]);
             materialSpecular = specularMap.get(key[0]);
-    
+
             gl.uniform4fv(gl.getUniformLocation(program, "lightDiffuse"), flatten(lightDiffuse));
             gl.uniform4fv(gl.getUniformLocation(program, "materialDiffuse"), flatten(materialDiffuse));
             gl.uniform4fv(gl.getUniformLocation(program, "lightSpecular"), flatten(lightSpecular));
@@ -153,13 +153,12 @@ function setObjects() {
                     break;
                 case 1:
                     transformMatrix = translate(2.85, -0.25, 0);
-                    //transformMatrix = mult(transformMatrix, rotateY(150));
+                    transformMatrix = mult(transformMatrix, rotateY(0));
                     parentMatrix.push(transformMatrix);
                     break;
                 case 2:
                     parentMatrix.push(parentMatrix[0]);
                     transformMatrix = mult(parentMatrix[0], translate(0.2, 0.70, 1.5));
-                    //viewMatrix = mult(transformMatrix, viewMatrix);
                     //parentMatrix.pop();
                     break;
                 case 3:
@@ -176,6 +175,8 @@ function setObjects() {
 
             gl.vertexAttribPointer(rPosition, 4, gl.FLOAT, false, 0, 0);
             gl.enableVertexAttribArray(rPosition);
+
+            console.log(rPosition);
 
             gl.bindBuffer(gl.ARRAY_BUFFER, vNormal);
             gl.bufferData(gl.ARRAY_BUFFER, flatten(finalNorms[x].get(key[0])), gl.STATIC_DRAW);
