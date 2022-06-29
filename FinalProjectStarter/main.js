@@ -112,6 +112,7 @@ function setObjects() {
     var vNormal = gl.createBuffer();
     var vNormalPosition = gl.getAttribLocation( program, "vNormal");
 
+    var parentMatrix = [];
     for(var x = 0; x < objectLoadCap; x++) {
         for(let key of finalVerts[x]) {
             materialDiffuse = diffuseMap.get(key[0]);
@@ -130,10 +131,12 @@ function setObjects() {
                     break;
                 case 1:
                     transformMatrix = translate(2.85, -0.25, 0);
-                    //transformMatrix = mult(transformMatrix, rotateY(180));
+                    //transformMatrix = mult(transformMatrix, rotateY(150));
+                    parentMatrix.push(transformMatrix);
                     break;
                 case 2:
-                    transformMatrix = translate(1, 1, 0);
+                    parentMatrix.push(parentMatrix[0]);
+                    transformMatrix = mult(parentMatrix[0], translate(0.2, 0.70, 1.5));
                     break;
                 case 3:
                     transformMatrix = translate(0, 0, 0);
