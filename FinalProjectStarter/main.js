@@ -27,6 +27,7 @@ var cameraMoving = false;
 var skyBoxOn = false;
 var skyType = 0.0;
 
+var hoodCamera = false;
 
 var texture;
 
@@ -137,6 +138,8 @@ function setObjects() {
                 case 2:
                     parentMatrix.push(parentMatrix[0]);
                     transformMatrix = mult(parentMatrix[0], translate(0.2, 0.70, 1.5));
+                    viewMatrix = mult(parentMatrix[0], translate(0.0, 1.0, 1.0));
+                    //parentMatrix.pop();
                     break;
                 case 3:
                     transformMatrix = translate(0, 0, 0);
@@ -202,6 +205,9 @@ window.addEventListener("keypress", function(event) {
     }
     if(code == "e" || code == "E") {
         skyBoxOn = !skyBoxOn;
+    }
+    if(code == "d" || code == "D") {
+        hoodCamera = !hoodCamera;
     }
 });
 
