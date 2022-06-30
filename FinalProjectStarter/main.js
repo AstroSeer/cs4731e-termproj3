@@ -210,6 +210,9 @@ function main() {
     skyIMG6.onload = function() {
         console.log(skyIMG6);
     }
+    projectionMatrixLoc = gl.getUniformLocation( program, "projectionMatrix" );
+    projectionMatrix = perspective(fov, aspect, near, far);
+    gl.uniformMatrix4fv(projectionMatrixLoc, false, flatten(projectionMatrix) );
     render();
 }
 
@@ -289,29 +292,23 @@ function setObjects() {
                     transformMatrix = translate(moveCar[0], -0.25, moveCar[1]);
                     transformMatrix = mult(transformMatrix, rotateY(rot));
                     parentMatrix.push(transformMatrix);
-                    // if(hoodCamera) {
-                    //     eye = defaultCoords;
-                    //     var frontCar = vec3(0.1, 0.05, -10.0);
-                    //     viewMatrix = lookAt(eye, frontCar, up);
-                    //     viewMatrix = mult(viewMatrix, transformMatrix);
-                    //     viewMatrix = mult(viewMatrix, translate(0.2, -0.4, 0.85))
-                    //     viewMatrix = mult(viewMatrix, rotateY(180 - rot));
-                    //     //rot = rot - 1.0;
-                    // }
+                    if(reflectCar) {
+                        reflectType = 1.0;
+                        gl.uniform1f(gl.getUniformLocation(program, "vReflectType"), reflectType);
+                    }
                     break;
                 case 2:
                     transformMatrix = mult(parentMatrix[0], translate(0.2, 0.70, 1.5));
                     parentMatrix.push(transformMatrix);
                     if(hoodCamera) {
-                        // eye = defaultCoords;
-                        // var frontCar = vec3(0.1, 0.05, -10.0);
-                        // viewMatrix = lookAt(eye, frontCar, up);
-                        // viewMatrix = mult(viewMatrix, transformMatrix);
-                        // viewMatrix = mult(viewMatrix, translate(0.0, -1.2, -0.5))
-                        // viewMatrix = mult(viewMatrix, rotateY(180 - rot));
                         viewMatrix = parentMatrix[0];
                         viewMatrix = mult(viewMatrix, rotateY(180));
                         viewMatrix = mult(viewMatrix, translate(-0.2, -0.4, -1.0));
+                    }
+                    if(refractBunny) {
+                        console.log("refracting bunny");
+                        refractType = 1.0;
+                        gl.uniform1f(gl.getUniformLocation(program, "vRefractType"), refractType);
                     }
                     //parentMatrix.pop();
                     break;
@@ -353,13 +350,14 @@ function setObjects() {
             }
 
             gl.uniformMatrix4fv(viewMatrixLoc, false, flatten(viewMatrix) );
-            gl.uniformMatrix4fv(projectionMatrixLoc, false, flatten(projectionMatrix) );
 
             gl.uniform4fv(gl.getUniformLocation(program, "lightPosition"), flatten(lightPosition));
             gl.uniform1f(gl.getUniformLocation(program, "shininess"), materialShininess);
             gl.uniform1f(gl.getUniformLocation(program, "vStopSign"), stopSign);
 
             gl.drawArrays(gl.TRIANGLES, 0, flatten(key[1]).length);
+            refractType = 0.0;
+            reflectType = 0.0;
         }
     }
     if(engageCarMove) {
@@ -537,10 +535,6 @@ function processData() {
         colorsArray = [];
         stopSign = 0.0;
     }
-    if(reflectCar || refractBunny) {
-        configureCubeMap();
-        configureCubeMapImage(skyIMG1, skyIMG2, skyIMG3, skyIMG4, skyIMG5, skyIMG6);
-    }
     gl.uniform1f(gl.getUniformLocation(program, "vSkyType"), skyType);
 
     var image = new Image();
@@ -564,11 +558,9 @@ function processData() {
         }
         viewMatrix = mult(viewMatrix, rotateY(alpha));
         viewMatrix = mult(viewMatrix, translate(0, alphaY, 0));
-        projectionMatrix = perspective(fov, aspect, near, far);
         //console.log(viewMatrix);
     
         gl.uniformMatrix4fv(viewMatrixLoc, false, flatten(viewMatrix) );
-        gl.uniformMatrix4fv(projectionMatrixLoc, false, flatten(projectionMatrix) );
     }
     setObjects();
 }
@@ -629,6 +621,8 @@ function render() {
         }
         else if(isMaterialLoaded == 4) {
             loadFile("https://web.cs.wpi.edu/~jmcuneo/cs4731/project3_1/stopsign.mtl", "MTL");
+            configureCubeMap();
+            configureCubeMapImage(skyIMG1, skyIMG2, skyIMG3, skyIMG4, skyIMG5, skyIMG6);
         }
         else if(isObjectLoaded == 0) {
             loadFile("https://web.cs.wpi.edu/~jmcuneo/cs4731/project3_1/street.obj", "OBJ");

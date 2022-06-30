@@ -8,13 +8,15 @@
             attribute vec4 vNormal;
             attribute vec2 vTexCoord;
             attribute vec4 vColor;
-
+            
             uniform mat4 viewMatrix;
             uniform mat4 modelMatrix;
             uniform mat4 projectionMatrix;
             uniform vec4 lightPosition;
             uniform sampler2D texture;
-
+            
+            varying float vReflectType;
+            varying float vRefractType;
             varying vec3 L, N, V;
             varying vec2 fTexCoord;
             varying vec3 refl;
@@ -28,7 +30,12 @@
 
                 V = normalize(-pos);
 
-                refl = refract(pos, N, 0.95);
+                if(vRefractType == 1.0) {
+                    refl = refract(pos, N, 0.95);
+                }
+                if(vReflectType == 1.0) {
+                    refl = reflect(pos, N);
+                }
 
                 fTexCoord = vTexCoord;
                 dColor = vColor;
@@ -40,9 +47,11 @@
             precision mediump float;
 
             varying vec3 L, N, V;
-            varying  vec2 fTexCoord;
+            varying vec2 fTexCoord;
             varying vec3 refl;
             varying vec4 dColor;
+            varying float vReflectType;
+            varying float vRefractType;
             
             uniform vec4 lightAmbient, lightDiffuse, lightSpecular;
             uniform vec4 materialAmbient, materialDiffuse, materialSpecular;
@@ -66,6 +75,10 @@
                 vec4 fColor = diffuse + specular + ambient;
                 fColor.a = 1.0;
 
+                if(vRefractType == 1.0) {
+                    vec4 texColor = textureCube(texMap, refl);
+                    gl_FragColor = fColor*texColor;
+                }
                 if(vStopSign == 2.0) {
                     gl_FragColor = dColor;
                 }
