@@ -293,6 +293,7 @@ function setObjects() {
                     transformMatrix = mult(transformMatrix, rotateY(rot));
                     parentMatrix.push(transformMatrix);
                     if(reflectCar) {
+                        console.log("reflecting car");
                         reflectType = 1.0;
                         gl.uniform1f(gl.getUniformLocation(program, "vReflectType"), reflectType);
                     }
