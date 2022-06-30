@@ -104,15 +104,26 @@ var cubeVerts = [
     vec4( 0.5, -0.5, -0.5, 1.0 )
 ];
 
+// var cubeVerts = [
+//     vec4( 0.5, -0.5, -0.5, 1.0 ),
+//     vec4( 0.5,  0.5, -0.5, 1.0 ),
+//     vec4( -0.5,  0.5, -0.5, 1.0 ),
+//     vec4( -0.5, -0.5, -0.5, 1.0 ),
+//     vec4( 0.5, -0.5,  0.5, 1.0 ),
+//     vec4( 0.5,  0.5,  0.5, 1.0 ),
+//     vec4( -0.5,  0.5,  0.5, 1.0 ),
+//     vec4( -0.5, -0.5,  0.5, 1.0 )
+// ];
+
 var vertexColors = [
-    vec4( 0.0, 0.0, 0.0, 1.0 ),  // black
     vec4( 1.0, 0.0, 0.0, 1.0 ),  // red
-    vec4( 1.0, 1.0, 0.0, 1.0 ),  // yellow
-    vec4( 0.0, 1.0, 0.0, 1.0 ),  // green
-    vec4( 0.0, 0.0, 1.0, 1.0 ),  // blue
-    vec4( 1.0, 0.0, 1.0, 1.0 ),  // magenta
-    vec4( 0.0, 1.0, 1.0, 1.0 ),  // white
-    vec4( 0.0, 1.0, 1.0, 1.0 )   // cyan
+    vec4( 1.0, 0.0, 0.0, 1.0 ),  // red
+    vec4( 1.0, 0.0, 0.0, 1.0 ),  // red
+    vec4( 1.0, 0.0, 0.0, 1.0 ),  // red
+    vec4( 1.0, 0.0, 0.0, 1.0 ),  // red
+    vec4( 1.0, 0.0, 0.0, 1.0 ),  // red
+    vec4( 1.0, 0.0, 0.0, 1.0 ),  // red
+    vec4( 1.0, 0.0, 0.0, 1.0 ),  // red
 ];
 
 var skyTexCoord = [
@@ -172,7 +183,7 @@ function main() {
     aspect = canvas.width/canvas.height;
 
     gl.enable(gl.DEPTH_TEST);
-    gl.enable(gl.CULL_FACE);
+    //gl.enable(gl.CULL_FACE);
 
     skyIMG1 = new Image();
     skyIMG1.crossOrigin = "";
@@ -505,12 +516,12 @@ function processData() {
         gl.depthMask(false);
         setCube();
         console.log(pointsArray);
-        // var cubeTransformMatrix = scalem(10, 10, 10);
+        var cubeTransformMatrix = scalem(100, 100, 100);
         // console.log(cubeTransformMatrix);
         console.log(colorsArray);
         console.log("----------------");
-        // var boxModelMatrix = gl.getUniformLocation(program, "modelMatrix");
-        // gl.uniformMatrix4fv(boxModelMatrix, false, flatten(cubeTransformMatrix));
+        var boxModelMatrix = gl.getUniformLocation(program, "modelMatrix");
+        gl.uniformMatrix4fv(boxModelMatrix, false, flatten(cubeTransformMatrix));
 
         var cBuffer = gl.createBuffer();
         gl.bindBuffer( gl.ARRAY_BUFFER, cBuffer );
@@ -528,13 +539,13 @@ function processData() {
         gl.vertexAttribPointer(rPosition, 4, gl.FLOAT, false, 0, 0);
         gl.enableVertexAttribArray(rPosition);
 
-        stopSign = 2.0;
-        gl.uniform1f(gl.getUniformLocation(program, "vStopSign"), stopSign);
+        skyType = 2.0;
+        gl.uniform1f(gl.getUniformLocation(program, "vSkyType"), skyType);
         gl.drawArrays(gl.TRIANGLES, 0, flatten(pointsArray));
         gl.depthMask(true);
         pointsArray = [];
         colorsArray = [];
-        stopSign = 0.0;
+        skyType = 0.0;
     }
     gl.uniform1f(gl.getUniformLocation(program, "vSkyType"), skyType);
 

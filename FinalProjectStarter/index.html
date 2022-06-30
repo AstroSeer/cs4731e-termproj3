@@ -75,11 +75,11 @@
                 vec4 fColor = diffuse + specular + ambient;
                 fColor.a = 1.0;
 
-                if(vRefractType == 1.0) {
+                if(vRefractType == 1.0 || vReflectType == 1.0) {
                     vec4 texColor = textureCube(texMap, refl);
                     gl_FragColor = fColor*texColor;
                 }
-                if(vStopSign == 2.0) {
+                if(vSkyType == 2.0) {
                     gl_FragColor = dColor;
                 }
                 else if(vStopSign == 1.0) {
