@@ -63,6 +63,10 @@ var cubeMap;
 
 var skyBoxOn = false;
 var skyType = 0.0;
+var reflectCar = false;
+var refractBunny = false;
+var refractType = 0.0;
+var reflectType = 0.0;
 
 var pointsArray = [];
 var texCoordsArray = [];
@@ -255,9 +259,16 @@ function setObjects() {
                 case 1:
                     transformMatrix = translate(2.85, -0.25, 0);
                     //transformMatrix = mult(transformMatrix, rotateY(180));
+                    // if(reflectCar) {
+
+                    // }
                     break;
                 case 2:
                     transformMatrix = translate(1, 1, 0);
+                    if(refractBunny) {
+                        
+                        gl.uniform1f(gl.getUniformLocation(program, "vStopSign"), stopSign);
+                    }
                     break;
                 case 3:
                     transformMatrix = translate(0, 0, 0);
@@ -326,10 +337,10 @@ window.addEventListener("keypress", function(event) {
         skyBoxOn = !skyBoxOn;
     }
     if(code == "r" || code == "R") {
-        skyBoxOn = !skyBoxOn;
+        reflectCar = !reflectCar;
     }
     if(code == "f" || code == "F") {
-        skyBoxOn = !skyBoxOn;
+        refractBunny = !refractBunny;
     }
 });
 
@@ -398,14 +409,15 @@ function processData() {
 
     if(skyBoxOn) {
         console.log("skyBoxOn is activated");
+        gl.depthMask(false);
         setCube();
         console.log(pointsArray);
-        var cubeTransformMatrix = scalem(10, 10, 10);
-        console.log(cubeTransformMatrix);
+        // var cubeTransformMatrix = scalem(10, 10, 10);
+        // console.log(cubeTransformMatrix);
         console.log(colorsArray);
         console.log("----------------");
-        var boxModelMatrix = gl.getUniformLocation(program, "modelMatrix");
-        gl.uniformMatrix4fv(boxModelMatrix, false, flatten(cubeTransformMatrix));
+        // var boxModelMatrix = gl.getUniformLocation(program, "modelMatrix");
+        // gl.uniformMatrix4fv(boxModelMatrix, false, flatten(cubeTransformMatrix));
 
         var cBuffer = gl.createBuffer();
         gl.bindBuffer( gl.ARRAY_BUFFER, cBuffer );
@@ -423,12 +435,17 @@ function processData() {
         gl.vertexAttribPointer(rPosition, 4, gl.FLOAT, false, 0, 0);
         gl.enableVertexAttribArray(rPosition);
 
-        skyType = 2.0;
-        gl.uniform1f(gl.getUniformLocation(program, "vSkyType"), skyType);
+        stopSign = 2.0;
+        gl.uniform1f(gl.getUniformLocation(program, "vStopSign"), stopSign);
         gl.drawArrays(gl.TRIANGLES, 0, flatten(pointsArray));
+        gl.depthMask(true);
         pointsArray = [];
         colorsArray = [];
-        skyType = 0.0;
+        stopSign = 0.0;
+    }
+    if(reflectCar || refractBunny) {
+        configureCubeMap();
+        configureCubeMapImage(skyIMG1, skyIMG2, skyIMG3, skyIMG4, skyIMG5, skyIMG6);
     }
     gl.uniform1f(gl.getUniformLocation(program, "vSkyType"), skyType);
 

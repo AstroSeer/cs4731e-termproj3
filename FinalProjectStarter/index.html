@@ -66,10 +66,10 @@
                 vec4 fColor = diffuse + specular + ambient;
                 fColor.a = 1.0;
 
-                if(vSkyType == 2.0) {
+                if(vStopSign == 2.0) {
                     gl_FragColor = dColor;
                 }
-                if(vStopSign == 1.0) {
+                else if(vStopSign == 1.0) {
                     gl_FragColor = texture2D(texture, fTexCoord) * fColor;
                 }
                 else {
