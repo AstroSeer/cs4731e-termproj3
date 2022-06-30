@@ -166,26 +166,11 @@ function setObjects() {
                     transformMatrix = translate(moveCar[0], -0.25, moveCar[1]);
                     transformMatrix = mult(transformMatrix, rotateY(rot));
                     parentMatrix.push(transformMatrix);
-                    // if(hoodCamera) {
-                    //     eye = defaultCoords;
-                    //     var frontCar = vec3(0.1, 0.05, -10.0);
-                    //     viewMatrix = lookAt(eye, frontCar, up);
-                    //     viewMatrix = mult(viewMatrix, transformMatrix);
-                    //     viewMatrix = mult(viewMatrix, translate(0.2, -0.4, 0.85))
-                    //     viewMatrix = mult(viewMatrix, rotateY(180 - rot));
-                    //     //rot = rot - 1.0;
-                    // }
                     break;
                 case 2:
                     transformMatrix = mult(parentMatrix[0], translate(0.2, 0.70, 1.5));
                     parentMatrix.push(transformMatrix);
                     if(hoodCamera) {
-                        // eye = defaultCoords;
-                        // var frontCar = vec3(0.1, 0.05, -10.0);
-                        // viewMatrix = lookAt(eye, frontCar, up);
-                        // viewMatrix = mult(viewMatrix, transformMatrix);
-                        // viewMatrix = mult(viewMatrix, translate(0.0, -1.2, -0.5))
-                        // viewMatrix = mult(viewMatrix, rotateY(180 - rot));
                         viewMatrix = parentMatrix[0];
                         viewMatrix = mult(viewMatrix, rotateY(180));
                         viewMatrix = mult(viewMatrix, translate(-0.2, -0.4, -1.0));
@@ -239,18 +224,28 @@ function setObjects() {
             stopSign = 0.0;
 
             if(shadowOn && lightOn) {
-                vShadows = 1.0;
-                modelMatrix = translate(lightPosition[0], lightPosition[1], lightPosition[2]);
-                modelMatrix = mult(modelMatrix, sm);
-                modelMatrix = mult(modelMatrix, translate(-lightPosition[0], -lightPosition[1], -lightPosition[2]))
+                if(x == 1 || x == 4) {
+                    vShadows = 1.0;
+                    gl.uniform1f(gl.getUniformLocation(program, "vShadows"), vShadows);
+                    var modelMatrix2;
+                    modelMatrix2 = translate(lightPosition[0], lightPosition[1], lightPosition[2]);
+                    modelMatrix2 = mult(modelMatrix2, sm);
+                    modelMatrix2 = mult(modelMatrix2, translate(-lightPosition[0], -lightPosition[1], -lightPosition[2]))
 
-                var viewMatrix2 = mult(lookAt(eye, at, up), modelMatrix);
+                    var viewMatrix2 = mult(viewMatrix, modelMatrix2);
 
-                viewMatrixLoc = gl.getUniformLocation( program, "viewMatrix" );
-                gl.uniformMatrix4fv(viewMatrixLoc, false, flatten(viewMatrix2));
-                gl.uniform1f(gl.getUniformLocation(program, "vShadows"), vShadows);
-                gl.drawArrays(gl.TRIANGLES, 0, flatten(key[1]).length);
-                vShadows = 0.0;
+                    gl.bindBuffer(gl.ARRAY_BUFFER, rBuffer);
+                    gl.bufferData(gl.ARRAY_BUFFER, flatten(key[1]), gl.STATIC_DRAW);
+        
+                    gl.vertexAttribPointer(rPosition, 4, gl.FLOAT, false, 0, 0);
+                    gl.enableVertexAttribArray(rPosition);
+
+                    viewMatrixLoc = gl.getUniformLocation( program, "viewMatrix" );
+                    gl.uniformMatrix4fv(viewMatrixLoc, false, flatten(viewMatrix2));
+                    gl.uniform1f(gl.getUniformLocation(program, "vShadows"), vShadows);
+                    gl.drawArrays(gl.TRIANGLES, 0, flatten(key[1]).length);
+                    vShadows = 0.0;
+                }
             }
         }
     }
