@@ -7,6 +7,7 @@
             attribute vec4 vPosition;
             attribute vec4 vNormal;
             attribute vec2 vTexCoord;
+            attribute vec4 vColor;
 
             uniform mat4 viewMatrix;
             uniform mat4 modelMatrix;
@@ -17,6 +18,7 @@
             varying vec3 L, N, V;
             varying vec2 fTexCoord;
             varying vec3 refl;
+            varying vec4 dColor;
 
             void main() {
                 vec3 pos = (viewMatrix * vPosition).xyz;
@@ -29,6 +31,7 @@
                 refl = refract(pos, N, 0.95);
 
                 fTexCoord = vTexCoord;
+                dColor = vColor;
                 gl_Position = projectionMatrix * viewMatrix * modelMatrix * vPosition;
             }
         </script>
@@ -39,6 +42,7 @@
             varying vec3 L, N, V;
             varying  vec2 fTexCoord;
             varying vec3 refl;
+            varying vec4 dColor;
             
             uniform vec4 lightAmbient, lightDiffuse, lightSpecular;
             uniform vec4 materialAmbient, materialDiffuse, materialSpecular;
@@ -63,7 +67,7 @@
                 fColor.a = 1.0;
 
                 if(vSkyType == 2.0) {
-                    gl_FragColor = textureCube(texMap, refl);
+                    gl_FragColor = dColor;
                 }
                 if(vStopSign == 1.0) {
                     gl_FragColor = texture2D(texture, fTexCoord) * fColor;

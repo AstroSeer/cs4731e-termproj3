@@ -64,6 +64,9 @@ var cubeMap;
 var skyBoxOn = false;
 var skyType = 0.0;
 
+var pointsArray = [];
+var texCoordsArray = [];
+var colorsArray = [];
 
 var texture;
 
@@ -82,6 +85,28 @@ var materialAmbient = vec4( 0.3, 0.3, 0.3, 1.0 );
 var materialDiffuse;
 var materialSpecular;
 var materialShininess = 20.0;
+
+var cubeVerts = [
+    vec4( -0.5, -0.5,  0.5, 1.0 ),
+    vec4( -0.5,  0.5,  0.5, 1.0 ),
+    vec4( 0.5,  0.5,  0.5, 1.0 ),
+    vec4( 0.5, -0.5,  0.5, 1.0 ),
+    vec4( -0.5, -0.5, -0.5, 1.0 ),
+    vec4( -0.5,  0.5, -0.5, 1.0 ),
+    vec4( 0.5,  0.5, -0.5, 1.0 ),
+    vec4( 0.5, -0.5, -0.5, 1.0 )
+];
+
+var vertexColors = [
+    vec4( 0.0, 0.0, 0.0, 1.0 ),  // black
+    vec4( 1.0, 0.0, 0.0, 1.0 ),  // red
+    vec4( 1.0, 1.0, 0.0, 1.0 ),  // yellow
+    vec4( 0.0, 1.0, 0.0, 1.0 ),  // green
+    vec4( 0.0, 0.0, 1.0, 1.0 ),  // blue
+    vec4( 1.0, 0.0, 1.0, 1.0 ),  // magenta
+    vec4( 0.0, 1.0, 1.0, 1.0 ),  // white
+    vec4( 0.0, 1.0, 1.0, 1.0 )   // cyan
+];
 
 var skyTexCoord = [
     [minT, minT],
@@ -177,6 +202,32 @@ function main() {
     render();
 }
 
+function quad(a, b, c, d) {
+    pointsArray.push(cubeVerts[a]);
+    colorsArray.push(vertexColors[a]);
+    texCoordsArray.push(skyTexCoord[0]);
+
+    pointsArray.push(cubeVerts[b]);
+    colorsArray.push(vertexColors[a]);
+    texCoordsArray.push(skyTexCoord[1]);
+
+    pointsArray.push(cubeVerts[c]);
+    colorsArray.push(vertexColors[a]);
+    texCoordsArray.push(skyTexCoord[2]);
+
+    pointsArray.push(cubeVerts[a]);
+    colorsArray.push(vertexColors[a]);
+    texCoordsArray.push(skyTexCoord[0]);
+
+    pointsArray.push(cubeVerts[c]);
+    colorsArray.push(vertexColors[a]);
+    texCoordsArray.push(skyTexCoord[2]);
+
+    pointsArray.push(cubeVerts[d]);
+    colorsArray.push(vertexColors[a]);
+    texCoordsArray.push(skyTexCoord[3]);
+}
+
 function setObjects() {
     var transformMatrix;
     var modelMatrix = gl.getUniformLocation(program, "modelMatrix");
@@ -231,7 +282,7 @@ function setObjects() {
             
             if(x == 4 && finalUVs[4].get('StopMaterial')) {
                 var tBuffer = gl.createBuffer();
-                gl.activeTexture(gl.TEXTURE2);
+                gl.activeTexture(gl.TEXTURE0);
                 gl.bindBuffer( gl.ARRAY_BUFFER, tBuffer );
                 gl.bufferData( gl.ARRAY_BUFFER, flatten(finalUVs[4].get('StopMaterial')), gl.STATIC_DRAW );
             
@@ -274,13 +325,19 @@ window.addEventListener("keypress", function(event) {
     if(code == "e" || code == "E") {
         skyBoxOn = !skyBoxOn;
     }
+    if(code == "r" || code == "R") {
+        skyBoxOn = !skyBoxOn;
+    }
+    if(code == "f" || code == "F") {
+        skyBoxOn = !skyBoxOn;
+    }
 });
 
 function configureCubeMap() {
     console.log("in cubeMap config");
     //Initialize
     cubeMap = gl.createTexture();
-    gl.activeTexture(gl.TEXTURE0);
+    gl.activeTexture(gl.TEXTURE2);
     gl.bindTexture(gl.TEXTURE_CUBE_MAP, cubeMap);
 
     gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
@@ -298,7 +355,16 @@ function configureCubeMap() {
     gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
     gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 
-    gl.uniform1i(gl.getUniformLocation(program, "texMap"), 1);
+    gl.uniform1i(gl.getUniformLocation(program, "texMap"), 2);
+}
+
+function setCube() {
+   quad( 1, 0, 3, 2 );
+   quad( 2, 3, 7, 6 );
+   quad( 3, 0, 4, 7 );
+   quad( 6, 5, 1, 2 );
+   quad( 4, 5, 6, 7 );
+   quad( 5, 4, 0, 1 );
 }
 
 function configureCubeMapImage(i1, i2, i3, i4, i5, i6) {
@@ -306,7 +372,7 @@ function configureCubeMapImage(i1, i2, i3, i4, i5, i6) {
     //console.log(image);
     //Initialize
     cubeMap = gl.createTexture();
-    gl.activeTexture(gl.TEXTURE1);
+    gl.activeTexture(gl.TEXTURE3);
     gl.bindTexture(gl.TEXTURE_CUBE_MAP, cubeMap);
 
     gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
@@ -323,7 +389,7 @@ function configureCubeMapImage(i1, i2, i3, i4, i5, i6) {
     gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
     gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 
-    gl.uniform1i(gl.getUniformLocation(program, "texMap"), 2);
+    gl.uniform1i(gl.getUniformLocation(program, "texMap"), 3);
 }
 
 function processData() {
@@ -331,12 +397,39 @@ function processData() {
     projectionMatrixLoc = gl.getUniformLocation( program, "projectionMatrix" );
 
     if(skyBoxOn) {
+        console.log("skyBoxOn is activated");
+        setCube();
+        console.log(pointsArray);
+        var cubeTransformMatrix = scalem(10, 10, 10);
+        console.log(cubeTransformMatrix);
+        console.log(colorsArray);
+        console.log("----------------");
+        var boxModelMatrix = gl.getUniformLocation(program, "modelMatrix");
+        gl.uniformMatrix4fv(boxModelMatrix, false, flatten(cubeTransformMatrix));
+
+        var cBuffer = gl.createBuffer();
+        gl.bindBuffer( gl.ARRAY_BUFFER, cBuffer );
+        gl.bufferData( gl.ARRAY_BUFFER, flatten(colorsArray), gl.STATIC_DRAW );
+
+        var vColor = gl.getAttribLocation( program, "vColor" );
+        gl.vertexAttribPointer( vColor, 4, gl.FLOAT, false, 0, 0 );
+        gl.enableVertexAttribArray( vColor );
+
+        var eBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, eBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, flatten(pointsArray), gl.STATIC_DRAW);
+        
+        var rPosition = gl.getAttribLocation( program, "vPosition");
+        gl.vertexAttribPointer(rPosition, 4, gl.FLOAT, false, 0, 0);
+        gl.enableVertexAttribArray(rPosition);
+
         skyType = 2.0;
-        configureCubeMap();
-        configureCubeMapImage(skyIMG1, skyIMG2, skyIMG3, skyIMG4, skyIMG5, skyIMG6);
         gl.uniform1f(gl.getUniformLocation(program, "vSkyType"), skyType);
+        gl.drawArrays(gl.TRIANGLES, 0, flatten(pointsArray));
+        pointsArray = [];
+        colorsArray = [];
+        skyType = 0.0;
     }
-    skyType = 0.0;
     gl.uniform1f(gl.getUniformLocation(program, "vSkyType"), skyType);
 
     var image = new Image();
@@ -383,6 +476,24 @@ function configureTexture(image) {
     gl.uniform1i(gl.getUniformLocation(program, "texture"), 0);
 }
 
+function configureTexture1(image) {
+    var tex = gl.createTexture();
+    gl.activeTexture(gl.TEXTURE1);
+    gl.bindTexture(gl.TEXTURE_2D, tex);
+
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, image);
+
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+
+    gl.uniform1i(gl.getUniformLocation(program, "tex1"), 1);
+
+}
+
 function render() {
     gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT );
     if(isBusy == false) {
@@ -427,20 +538,5 @@ function render() {
             loadFile("https://web.cs.wpi.edu/~jmcuneo/cs4731/project3_1/stopsign.obj", "OBJ");
         }
     }
-    // if(keepRender) {
-    //     for(var x = 0; x < objectLoadCap; x++) {
-    //         for(let key of finalVerts[x]) {
-    //             var rBuffer = gl.createBuffer();
-    //             gl.bindBuffer(gl.ARRAY_BUFFER, rBuffer);
-    //             gl.bufferData(gl.ARRAY_BUFFER, flatten(key[1]), gl.STATIC_DRAW);
-
-    //             var rPosition = gl.getAttribLocation( program, "vPosition");
-    //             gl.vertexAttribPointer(rPosition, 4, gl.FLOAT, false, 0, 0);
-    //             gl.enableVertexAttribArray(rPosition);
-
-    //             gl.drawArrays(gl.TRIANGLES, 0, flatten(key[1]).length);
-    //         }
-    //     }
-    // }
     requestAnimFrame(render);
 }
