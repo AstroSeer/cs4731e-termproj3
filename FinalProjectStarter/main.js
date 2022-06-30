@@ -72,6 +72,9 @@ var pointsArray = [];
 var texCoordsArray = [];
 var colorsArray = [];
 
+var hoodCamera = false;
+var engageCarMove = false;
+
 var texture;
 
 var minT = 0.0;
@@ -122,6 +125,7 @@ var skyTexCoord = [
 var alpha = 0.0;
 var alphaY = 0.0;
 var tY = 0.025;
+var rot = 0.0;
 
 var fov = 60;
 var aspect;
@@ -132,9 +136,12 @@ var eye;
 var at = vec3(0.0, 0.0, 0.0);
 var up = vec3(0.0, 1.0, 0.0);
 var eyeCoords = vec3(0.0, 3.0, 8.0);
+var defaultCoords = vec3(0.0, 0.0, 0.0);
 var eyeMoveX = 1.0;
 var eyeMoveY = -0.1;
 var eyeMoveZ = -1.0;
+var moveCar = [2.85, 0.0];
+var directionCar = 1;
 
 /**
  * Sets up WebGL and enables the features this program requires.
@@ -233,6 +240,27 @@ function quad(a, b, c, d) {
 }
 
 function setObjects() {
+    viewMatrixLoc = gl.getUniformLocation( program, "viewMatrix" );
+    projectionMatrixLoc = gl.getUniformLocation( program, "projectionMatrix" );
+
+    // eye = eyeCoords;
+    // viewMatrix = lookAt(eye, at , up);
+    // console.log(viewMatrix);
+    // if(cameraMoving && !hoodCamera) {
+    //     alpha -= 3.0;
+    //     alphaY += tY;
+    //     if(alphaY <= -0.25 || alphaY >= 0.25) {
+    //         tY = tY * -1;
+    //     }
+    //     //console.log(alpha);
+
+    // }
+
+    // viewMatrix = mult(viewMatrix, rotateY(alpha));
+    // viewMatrix = mult(viewMatrix, translate(0, alphaY, 0));
+    // projectionMatrix = perspective(fov, aspect, near, far);
+    //console.log(viewMatrix);
+
     var transformMatrix;
     var modelMatrix = gl.getUniformLocation(program, "modelMatrix");
     var rBuffer = gl.createBuffer();
@@ -240,11 +268,12 @@ function setObjects() {
     var vNormal = gl.createBuffer();
     var vNormalPosition = gl.getAttribLocation( program, "vNormal");
 
+    var parentMatrix = [];
     for(var x = 0; x < objectLoadCap; x++) {
         for(let key of finalVerts[x]) {
             materialDiffuse = diffuseMap.get(key[0]);
             materialSpecular = specularMap.get(key[0]);
-    
+
             gl.uniform4fv(gl.getUniformLocation(program, "lightDiffuse"), flatten(lightDiffuse));
             gl.uniform4fv(gl.getUniformLocation(program, "materialDiffuse"), flatten(materialDiffuse));
             gl.uniform4fv(gl.getUniformLocation(program, "lightSpecular"), flatten(lightSpecular));
@@ -257,18 +286,34 @@ function setObjects() {
                     transformMatrix = translate(0, 0, 0);
                     break;
                 case 1:
-                    transformMatrix = translate(2.85, -0.25, 0);
-                    //transformMatrix = mult(transformMatrix, rotateY(180));
-                    // if(reflectCar) {
-
+                    transformMatrix = translate(moveCar[0], -0.25, moveCar[1]);
+                    transformMatrix = mult(transformMatrix, rotateY(rot));
+                    parentMatrix.push(transformMatrix);
+                    // if(hoodCamera) {
+                    //     eye = defaultCoords;
+                    //     var frontCar = vec3(0.1, 0.05, -10.0);
+                    //     viewMatrix = lookAt(eye, frontCar, up);
+                    //     viewMatrix = mult(viewMatrix, transformMatrix);
+                    //     viewMatrix = mult(viewMatrix, translate(0.2, -0.4, 0.85))
+                    //     viewMatrix = mult(viewMatrix, rotateY(180 - rot));
+                    //     //rot = rot - 1.0;
                     // }
                     break;
                 case 2:
-                    transformMatrix = translate(1, 1, 0);
-                    if(refractBunny) {
-                        
-                        gl.uniform1f(gl.getUniformLocation(program, "vStopSign"), stopSign);
+                    transformMatrix = mult(parentMatrix[0], translate(0.2, 0.70, 1.5));
+                    parentMatrix.push(transformMatrix);
+                    if(hoodCamera) {
+                        // eye = defaultCoords;
+                        // var frontCar = vec3(0.1, 0.05, -10.0);
+                        // viewMatrix = lookAt(eye, frontCar, up);
+                        // viewMatrix = mult(viewMatrix, transformMatrix);
+                        // viewMatrix = mult(viewMatrix, translate(0.0, -1.2, -0.5))
+                        // viewMatrix = mult(viewMatrix, rotateY(180 - rot));
+                        viewMatrix = parentMatrix[0];
+                        viewMatrix = mult(viewMatrix, rotateY(180));
+                        viewMatrix = mult(viewMatrix, translate(-0.2, -0.4, -1.0));
                     }
+                    //parentMatrix.pop();
                     break;
                 case 3:
                     transformMatrix = translate(0, 0, 0);
@@ -290,7 +335,7 @@ function setObjects() {
 
             gl.vertexAttribPointer(vNormalPosition, 4, gl.FLOAT, false, 0, 0);
             gl.enableVertexAttribArray(vNormalPosition);
-            
+            //rot = rot-0.01;
             if(x == 4 && finalUVs[4].get('StopMaterial')) {
                 var tBuffer = gl.createBuffer();
                 gl.activeTexture(gl.TEXTURE0);
@@ -307,6 +352,9 @@ function setObjects() {
                 stopSign = 0.0;
             }
 
+            gl.uniformMatrix4fv(viewMatrixLoc, false, flatten(viewMatrix) );
+            gl.uniformMatrix4fv(projectionMatrixLoc, false, flatten(projectionMatrix) );
+
             gl.uniform4fv(gl.getUniformLocation(program, "lightPosition"), flatten(lightPosition));
             gl.uniform1f(gl.getUniformLocation(program, "shininess"), materialShininess);
             gl.uniform1f(gl.getUniformLocation(program, "vStopSign"), stopSign);
@@ -314,6 +362,46 @@ function setObjects() {
             gl.drawArrays(gl.TRIANGLES, 0, flatten(key[1]).length);
         }
     }
+    if(engageCarMove) {
+        if(moveCar[0] >= 2.8 && moveCar[1] >= 2.8) {
+            rot = rot - 90;
+            moveCar[0] = moveCar[0] - 0.2;
+            directionCar = 2;
+        }
+        else if(moveCar[0] <= -2.8 && moveCar[1] >= 2.8) {
+            rot = rot - 90;
+            moveCar[1] = moveCar[1] - 0.2;
+            directionCar = 3;
+        }
+        else if(moveCar[0] <= -2.8 && moveCar[1] <= -2.8) {
+            rot = rot - 90;
+            moveCar[0] = moveCar[0] + 0.2;
+            directionCar = 4;
+        }
+        else if(moveCar[0] >= 2.8 && moveCar[1] <= -2.8) {
+            rot = rot - 90;
+            moveCar[1] = moveCar[1] + 0.2;
+            directionCar = 1;
+        }
+        else {
+            switch(directionCar) {
+                case 1:
+                    moveCar[1] = moveCar[1] + 0.1;
+                    break;
+                case 2:
+                    moveCar[0] = moveCar[0] - 0.1;
+                    break;
+                case 3:
+                    moveCar[1] = moveCar[1] - 0.1;
+                    break;
+                case 4:
+                    moveCar[0] = moveCar[0] + 0.1;
+                    break;
+            }
+        }
+    }
+    // console.log(moveCar);
+    // console.log(directionCar);
 }
 
 window.addEventListener("keypress", function(event) {
@@ -341,6 +429,12 @@ window.addEventListener("keypress", function(event) {
     }
     if(code == "f" || code == "F") {
         refractBunny = !refractBunny;
+    }
+    if(code == "d" || code == "D") {
+        hoodCamera = !hoodCamera;
+    }
+    if(code == "m" || code == "M") {
+        engageCarMove = !engageCarMove;
     }
 });
 
@@ -456,24 +550,26 @@ function processData() {
         configureTexture(image);
     }
 
-    eye = eyeCoords;
-    viewMatrix = lookAt(eye, at , up);
-    if(cameraMoving) {
-        alpha -= 3.0;
-        alphaY += tY;
-        if(alphaY <= -0.25 || alphaY >= 0.25) {
-            tY = tY * -1;
-        }
+    if(!hoodCamera) {
+        eye = eyeCoords;
+        viewMatrix = lookAt(eye, at , up);
+        // console.log(viewMatrix);
+        if(cameraMoving && !hoodCamera) {
+            alpha -= 3.0;
+            alphaY += tY;
+            if(alphaY <= -0.25 || alphaY >= 0.25) {
+                tY = tY * -1;
+            }
         //console.log(alpha);
-
+        }
+        viewMatrix = mult(viewMatrix, rotateY(alpha));
+        viewMatrix = mult(viewMatrix, translate(0, alphaY, 0));
+        projectionMatrix = perspective(fov, aspect, near, far);
+        //console.log(viewMatrix);
+    
+        gl.uniformMatrix4fv(viewMatrixLoc, false, flatten(viewMatrix) );
+        gl.uniformMatrix4fv(projectionMatrixLoc, false, flatten(projectionMatrix) );
     }
-    viewMatrix = mult(viewMatrix, rotateY(alpha));
-    viewMatrix = mult(viewMatrix, translate(0, alphaY, 0));
-    projectionMatrix = perspective(fov, aspect, near, far);
-    //console.log(viewMatrix);
-
-    gl.uniformMatrix4fv(viewMatrixLoc, false, flatten(viewMatrix) );
-    gl.uniformMatrix4fv(projectionMatrixLoc, false, flatten(projectionMatrix) );
     setObjects();
 }
 
@@ -515,11 +611,6 @@ function render() {
     gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT );
     if(isBusy == false) {
         if(isObjectLoaded == objectLoadCap && isMaterialLoaded == materialLoadCap) {
-            // console.log(textureURL);
-            // console.log(currMaterial);
-            // console.log(diffuseMap);
-            // console.log(specularMap);
-            //console.log(textureURL);
             processData();
             // isBusy = true;
             // keepRender = true;
