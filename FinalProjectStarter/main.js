@@ -270,8 +270,8 @@ function setObjects() {
             }
         }
     }
-    console.log(moveCar);
-    console.log(directionCar);
+    // console.log(moveCar);
+    // console.log(directionCar);
 }
 
 window.addEventListener("keypress", function(event) {
