@@ -329,9 +329,6 @@ function setObjects() {
                         console.log("refracting bunny");
                         refractType = 1.0;
                         gl.uniform1f(gl.getUniformLocation(program, "vRefractType"), refractType);
-                        viewMatrix = parentMatrix[0];
-                        viewMatrix = mult(viewMatrix, rotateY(180));
-                        viewMatrix = mult(viewMatrix, translate(-0.2, -0.4, -1.0));
                     }
                     //parentMatrix.pop();
                     break;
@@ -383,6 +380,9 @@ function setObjects() {
             reflectType = 0.0;
             stopSign = 0.0;
 
+            gl.uniform1f(gl.getUniformLocation(program, "vRefractType"), refractType);
+            gl.uniform1f(gl.getUniformLocation(program, "vReflectType"), reflectType);
+
             if(shadowOn && lightOn) {
                 if(x == 1 || x == 4) {
                     vShadows = 1.0;
@@ -409,9 +409,10 @@ function setObjects() {
 
                     viewMatrixLoc = gl.getUniformLocation( program, "viewMatrix" );
                     gl.uniformMatrix4fv(viewMatrixLoc, false, flatten(viewMatrix2));
-                    gl.uniform1f(gl.getUniformLocation(program, "vShadows"), vShadows);
                     gl.drawArrays(gl.TRIANGLES, 0, key[1].length);
                     vShadows = 0.0;
+                    gl.uniform1f(gl.getUniformLocation(program, "vShadows"), vShadows);
+
                 }
             }
         }
@@ -471,7 +472,7 @@ function setCube() { // draw here and do texture per face
 
 function configureCubeMapImage(i1, i2, i3, i4, i5, i6) {
 
-    console.log(i1);
+    //console.log(i1);
     //console.log(image);
     //Initialize
     cubeMap = gl.createTexture();
@@ -503,7 +504,7 @@ function processData() {
         console.log("skyBoxOn is activated");
         gl.depthMask(false);
         // console.log(pointsArray);
-        var cubeTransformMatrix = scalem(25, 25, 25);
+        var cubeTransformMatrix = scalem(25, 35, 25);
         // console.log(cubeTransformMatrix);
         // console.log(colorsArray);
         // console.log("----------------");
@@ -535,6 +536,7 @@ function processData() {
         gl.enableVertexAttribArray( vTexCoord );
 
         configureTexture1(skyIMG6);
+        gl.uniformMatrix4fv(viewMatrixLoc, false, flatten(viewMatrix) );
 
         skyType = 2.0;
         gl.uniform1f(gl.getUniformLocation(program, "vSkyType"), skyType);

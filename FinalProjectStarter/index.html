@@ -4,6 +4,8 @@
         <meta charset="UTF-8">
         <title>CS 4731 Final Project</title>
         <script id="vshader" type="x-shader/x-vertex">
+            precision mediump float;
+            
             attribute vec4 vPosition;
             attribute vec4 vNormal;
             attribute vec2 vTexCoord;
@@ -14,9 +16,9 @@
             uniform mat4 projectionMatrix;
             uniform vec4 lightPosition;
             uniform sampler2D texture;
+            uniform float vReflectType;
+            uniform float vRefractType;
             
-            varying float vReflectType;
-            varying float vRefractType;
             varying vec3 L, N, V, E, H;
             varying vec2 fTexCoord;
             varying vec3 refl;
@@ -57,9 +59,9 @@
             varying vec2 fTexCoord;
             varying vec3 refl;
             varying vec4 dColor;
-            varying float vReflectType;
-            varying float vRefractType;
             
+            uniform float vReflectType;
+            uniform float vRefractType;
             uniform vec4 lightAmbient, lightDiffuse, lightSpecular;
             uniform vec4 materialAmbient, materialDiffuse, materialSpecular;
             uniform float shininess;
@@ -92,18 +94,21 @@
                 vec4 fColor = diffuse + specular + ambient;
                 fColor.a = 1.0;
 
-                if(vRefractType >= 0.5 || vReflectType >= 0.5) {
+                if(vRefractType >= 0.5) {
+                    vec4 texColor = textureCube(texMap, refl);
+                    gl_FragColor = texColor;
+                }
+                else if(vReflectType >= 0.5) {
                     vec4 texColor = textureCube(texMap, refl);
                     gl_FragColor = fColor*texColor;
                 }
-                if(vSkyType >= 1.5) {
+                else if(vSkyType >= 1.5) {
                     gl_FragColor = texture2D(tex1, fTexCoord);
                 }
-                else if(vStopSign >= 1.0) {
-                if(vShadows >= 0.5) {
+                else if(vShadows >= 0.5) {
                     gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
                 }
-                if(vStopSign == 1.0) {
+                else if(vStopSign >= 0.5) {
                     gl_FragColor = texture2D(texture, fTexCoord) * fColor;
                 }
                 else {
