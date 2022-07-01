@@ -72,8 +72,11 @@ var pointsArray = [];
 var texCoordsArray = [];
 var colorsArray = [];
 
+var shadowOn = false;
+var sm;
 var hoodCamera = false;
 var engageCarMove = false;
+var shadowColor = vec4(0.0, 0.0, 0.0, 1.0);
 
 var texture;
 
@@ -142,6 +145,7 @@ var fov = 60;
 var aspect;
 var near = 0.1;
 var far = 100000;
+var vShadows = 0.0;
 
 var eye;
 var at = vec3(0.0, 0.0, 0.0);
@@ -181,6 +185,9 @@ function main() {
     gl.useProgram(program);
 
     aspect = canvas.width/canvas.height;
+    sm = mat4();
+    sm[3][3] = 0;
+    sm[3][1] = -1/lightPosition[1];
 
     gl.enable(gl.DEPTH_TEST);
     //gl.enable(gl.CULL_FACE);
@@ -322,6 +329,9 @@ function setObjects() {
                         console.log("refracting bunny");
                         refractType = 1.0;
                         gl.uniform1f(gl.getUniformLocation(program, "vRefractType"), refractType);
+                        viewMatrix = parentMatrix[0];
+                        viewMatrix = mult(viewMatrix, rotateY(180));
+                        viewMatrix = mult(viewMatrix, translate(-0.2, -0.4, -1.0));
                     }
                     //parentMatrix.pop();
                     break;
@@ -371,6 +381,39 @@ function setObjects() {
             gl.drawArrays(gl.TRIANGLES, 0, flatten(key[1]).length);
             refractType = 0.0;
             reflectType = 0.0;
+            stopSign = 0.0;
+
+            if(shadowOn && lightOn) {
+                if(x == 1 || x == 4) {
+                    vShadows = 1.0;
+                    gl.uniform1f(gl.getUniformLocation(program, "vShadows"), vShadows);
+                    var modelMatrix2;
+                    modelMatrix2 = translate(lightPosition[0], lightPosition[1], lightPosition[2]);
+                    modelMatrix2 = mult(modelMatrix2, sm);
+                    modelMatrix2 = mult(modelMatrix2, translate(-lightPosition[0], -lightPosition[1], -lightPosition[2]))
+
+                    var viewMatrix2 = mult(viewMatrix, modelMatrix2);
+
+                    gl.bindBuffer(gl.ARRAY_BUFFER, rBuffer);
+                    gl.bufferData(gl.ARRAY_BUFFER, flatten(key[1]), gl.STATIC_DRAW);
+        
+                    gl.vertexAttribPointer(rPosition, 4, gl.FLOAT, false, 0, 0);
+                    gl.enableVertexAttribArray(rPosition);
+
+                    gl.uniform4fv(gl.getUniformLocation(program, "lightDiffuse"), flatten(shadowColor));
+                    gl.uniform4fv(gl.getUniformLocation(program, "materialDiffuse"), flatten(shadowColor));
+                    gl.uniform4fv(gl.getUniformLocation(program, "lightSpecular"), flatten(shadowColor));
+                    gl.uniform4fv(gl.getUniformLocation(program, "materialSpecular"), flatten(shadowColor));
+                    gl.uniform4fv(gl.getUniformLocation(program, "lightAmbient"), flatten(shadowColor));
+                    gl.uniform4fv(gl.getUniformLocation(program, "materialAmbient"), flatten(shadowColor));
+
+                    viewMatrixLoc = gl.getUniformLocation( program, "viewMatrix" );
+                    gl.uniformMatrix4fv(viewMatrixLoc, false, flatten(viewMatrix2));
+                    gl.uniform1f(gl.getUniformLocation(program, "vShadows"), vShadows);
+                    gl.drawArrays(gl.TRIANGLES, 0, key[1].length);
+                    vShadows = 0.0;
+                }
+            }
         }
     }
     if(engageCarMove) {
@@ -405,6 +448,9 @@ window.addEventListener("keypress", function(event) {
     }
     if(code == "f" || code == "F") {
         refractBunny = !refractBunny;
+    }
+    if(code == "s" || code == "S") {
+        shadowOn = !shadowOn;
     }
     if(code == "d" || code == "D") {
         hoodCamera = !hoodCamera;

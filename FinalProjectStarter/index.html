@@ -68,6 +68,7 @@
             uniform float vStopSign;
             uniform float vSkyType;
             uniform samplerCube texMap;
+            uniform float vShadows;
 
             void main() {
                 vec3 R = (2.0 * dot(L, N) * N) - L;
@@ -99,6 +100,10 @@
                     gl_FragColor = texture2D(tex1, fTexCoord);
                 }
                 else if(vStopSign >= 1.0) {
+                if(vShadows >= 0.5) {
+                    gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+                }
+                if(vStopSign == 1.0) {
                     gl_FragColor = texture2D(texture, fTexCoord) * fColor;
                 }
                 else {
