@@ -31,33 +31,7 @@ var skyIMG3;
 var skyIMG4;
 var skyIMG5;
 var skyIMG6;
-
-// const skyFaces = [
-//     {
-//       target: gl.TEXTURE_CUBE_MAP_POSITIVE_X,
-//       url: "https://web.cs.wpi.edu/~jmcuneo/cs4731/project3_1/skybox_posx.png",
-//     },
-//     {
-//       target: gl.TEXTURE_CUBE_MAP_NEGATIVE_X,
-//       url: "https://web.cs.wpi.edu/~jmcuneo/cs4731/project3_1/skybox_negx.png",
-//     },
-//     {
-//       target: gl.TEXTURE_CUBE_MAP_POSITIVE_Y,
-//       url: "https://web.cs.wpi.edu/~jmcuneo/cs4731/project3_1/skybox_posy.png",
-//     },
-//     {
-//       target: gl.TEXTURE_CUBE_MAP_NEGATIVE_Y,
-//       url: "https://web.cs.wpi.edu/~jmcuneo/cs4731/project3_1/skybox_negy.png",
-//     },
-//     {
-//       target: gl.TEXTURE_CUBE_MAP_POSITIVE_Z,
-//       url: "https://web.cs.wpi.edu/~jmcuneo/cs4731/project3_1/skybox_posz.png",
-//     },
-//     {
-//       target: gl.TEXTURE_CUBE_MAP_NEGATIVE_Z,
-//       url: "https://web.cs.wpi.edu/~jmcuneo/cs4731/project3_1/skybox_negz.png",
-//     },
-//   ];
+var bigIMG = [];
 
 var cubeMap;
 
@@ -106,17 +80,6 @@ var cubeVerts = [
     vec4( 0.5,  0.5, -0.5, 1.0 ),
     vec4( 0.5, -0.5, -0.5, 1.0 )
 ];
-
-// var cubeVerts = [
-//     vec4( 0.5, -0.5, -0.5, 1.0 ),
-//     vec4( 0.5,  0.5, -0.5, 1.0 ),
-//     vec4( -0.5,  0.5, -0.5, 1.0 ),
-//     vec4( -0.5, -0.5, -0.5, 1.0 ),
-//     vec4( 0.5, -0.5,  0.5, 1.0 ),
-//     vec4( 0.5,  0.5,  0.5, 1.0 ),
-//     vec4( -0.5,  0.5,  0.5, 1.0 ),
-//     vec4( -0.5, -0.5,  0.5, 1.0 )
-// ];
 
 var vertexColors = [
     vec4( 1.0, 0.0, 0.0, 1.0 ),  // red
@@ -190,7 +153,6 @@ function main() {
     sm[3][1] = -1/lightPosition[1];
 
     gl.enable(gl.DEPTH_TEST);
-    //gl.enable(gl.CULL_FACE);
 
     skyIMG1 = new Image();
     skyIMG1.crossOrigin = "";
@@ -231,7 +193,14 @@ function main() {
     projectionMatrixLoc = gl.getUniformLocation( program, "projectionMatrix" );
     projectionMatrix = perspective(fov, aspect, near, far);
     gl.uniformMatrix4fv(projectionMatrixLoc, false, flatten(projectionMatrix) );
-    setCube();
+    bigIMG = [
+        skyIMG5,
+        skyIMG1, // positive z
+        skyIMG4,
+        skyIMG3, // negative y
+        skyIMG6, // negative z
+        skyIMG2  // negative x
+    ];
     render();
 }
 
@@ -264,24 +233,6 @@ function quad(a, b, c, d) {
 function setObjects() {
     viewMatrixLoc = gl.getUniformLocation( program, "viewMatrix" );
     projectionMatrixLoc = gl.getUniformLocation( program, "projectionMatrix" );
-
-    // eye = eyeCoords;
-    // viewMatrix = lookAt(eye, at , up);
-    // console.log(viewMatrix);
-    // if(cameraMoving && !hoodCamera) {
-    //     alpha -= 3.0;
-    //     alphaY += tY;
-    //     if(alphaY <= -0.25 || alphaY >= 0.25) {
-    //         tY = tY * -1;
-    //     }
-    //     //console.log(alpha);
-
-    // }
-
-    // viewMatrix = mult(viewMatrix, rotateY(alpha));
-    // viewMatrix = mult(viewMatrix, translate(0, alphaY, 0));
-    // projectionMatrix = perspective(fov, aspect, near, far);
-    //console.log(viewMatrix);
 
     var transformMatrix;
     var modelMatrix = gl.getUniformLocation(program, "modelMatrix");
@@ -330,7 +281,6 @@ function setObjects() {
                         refractType = 1.0;
                         gl.uniform1f(gl.getUniformLocation(program, "vRefractType"), refractType);
                     }
-                    //parentMatrix.pop();
                     break;
                 case 3:
                     transformMatrix = translate(0, 0, 0);
@@ -420,13 +370,10 @@ function setObjects() {
     if(engageCarMove) {
         rot -= 2.0;
     }
-    // console.log(moveCar);
-    // console.log(directionCar);
 }
 
 window.addEventListener("keypress", function(event) {
     var code = event.key;
-    //Switches between wireframe and solid when "M" is pressed
     if(code == "l" || code == "L") {
         if(lightOn) {
             lightDiffuse = vec4( 0.1, 0.1, 0.1, 1.0 );
@@ -463,18 +410,20 @@ window.addEventListener("keypress", function(event) {
 
 function setCube() { // draw here and do texture per face
    quad( 1, 0, 3, 2 );
+   drawSky(0);
    quad( 2, 3, 7, 6 );
+   drawSky(1);
    quad( 3, 0, 4, 7 );
+   drawSky(2);
    quad( 6, 5, 1, 2 );
+   drawSky(3);
    quad( 4, 5, 6, 7 );
+   drawSky(4);
    quad( 5, 4, 0, 1 );
+   drawSky(5);
 }
 
 function configureCubeMapImage(i1, i2, i3, i4, i5, i6) {
-
-    //console.log(i1);
-    //console.log(image);
-    //Initialize
     cubeMap = gl.createTexture();
     gl.activeTexture(gl.TEXTURE2);
     gl.bindTexture(gl.TEXTURE_CUBE_MAP, cubeMap);
@@ -496,55 +445,54 @@ function configureCubeMapImage(i1, i2, i3, i4, i5, i6) {
     gl.uniform1i(gl.getUniformLocation(program, "texMap"), 2);
 }
 
+function drawSky(m) {
+    gl.depthMask(false);
+    var cubeTransformMatrix = scalem(25, 35, 25);
+    var boxModelMatrix = gl.getUniformLocation(program, "modelMatrix");
+    gl.uniformMatrix4fv(boxModelMatrix, false, flatten(cubeTransformMatrix));
+
+    var cBuffer = gl.createBuffer();
+    gl.bindBuffer( gl.ARRAY_BUFFER, cBuffer );
+    gl.bufferData( gl.ARRAY_BUFFER, flatten(colorsArray), gl.STATIC_DRAW );
+
+    var vColor = gl.getAttribLocation( program, "vColor" );
+    gl.vertexAttribPointer( vColor, 4, gl.FLOAT, false, 0, 0 );
+    gl.enableVertexAttribArray( vColor );
+
+    var eBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, eBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, flatten(pointsArray), gl.STATIC_DRAW);
+    
+    var rPosition = gl.getAttribLocation( program, "vPosition");
+    gl.vertexAttribPointer(rPosition, 4, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(rPosition);
+
+    var tBuffer = gl.createBuffer();
+    gl.bindBuffer( gl.ARRAY_BUFFER, tBuffer );
+    gl.bufferData( gl.ARRAY_BUFFER, flatten(texCoordsArray), gl.STATIC_DRAW );
+
+    var vTexCoord = gl.getAttribLocation( program, "vTexCoord" );
+    gl.vertexAttribPointer( vTexCoord, 2, gl.FLOAT, false, 0, 0 );
+    gl.enableVertexAttribArray( vTexCoord );
+
+    configureTexture1(bigIMG[m]);
+    gl.uniformMatrix4fv(viewMatrixLoc, false, flatten(viewMatrix) );
+
+    skyType = 2.0;
+    gl.uniform1f(gl.getUniformLocation(program, "vSkyType"), skyType);
+    gl.drawArrays(gl.TRIANGLES, 0, pointsArray.length);
+    gl.depthMask(true);
+    skyType = 0.0;
+    pointsArray = [];
+    texCoordsArray = [];
+}
+
 function processData() {
     viewMatrixLoc = gl.getUniformLocation( program, "viewMatrix" );
     projectionMatrixLoc = gl.getUniformLocation( program, "projectionMatrix" );
 
     if(skyBoxOn) {
-        console.log("skyBoxOn is activated");
-        gl.depthMask(false);
-        // console.log(pointsArray);
-        var cubeTransformMatrix = scalem(25, 35, 25);
-        // console.log(cubeTransformMatrix);
-        // console.log(colorsArray);
-        // console.log("----------------");
-        var boxModelMatrix = gl.getUniformLocation(program, "modelMatrix");
-        gl.uniformMatrix4fv(boxModelMatrix, false, flatten(cubeTransformMatrix));
-
-        var cBuffer = gl.createBuffer();
-        gl.bindBuffer( gl.ARRAY_BUFFER, cBuffer );
-        gl.bufferData( gl.ARRAY_BUFFER, flatten(colorsArray), gl.STATIC_DRAW );
-
-        var vColor = gl.getAttribLocation( program, "vColor" );
-        gl.vertexAttribPointer( vColor, 4, gl.FLOAT, false, 0, 0 );
-        gl.enableVertexAttribArray( vColor );
-
-        var eBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, eBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, flatten(pointsArray), gl.STATIC_DRAW);
-        
-        var rPosition = gl.getAttribLocation( program, "vPosition");
-        gl.vertexAttribPointer(rPosition, 4, gl.FLOAT, false, 0, 0);
-        gl.enableVertexAttribArray(rPosition);
-
-        var tBuffer = gl.createBuffer();
-        gl.bindBuffer( gl.ARRAY_BUFFER, tBuffer );
-        gl.bufferData( gl.ARRAY_BUFFER, flatten(texCoordsArray), gl.STATIC_DRAW );
-    
-        var vTexCoord = gl.getAttribLocation( program, "vTexCoord" );
-        gl.vertexAttribPointer( vTexCoord, 2, gl.FLOAT, false, 0, 0 );
-        gl.enableVertexAttribArray( vTexCoord );
-
-        configureTexture1(skyIMG6);
-        gl.uniformMatrix4fv(viewMatrixLoc, false, flatten(viewMatrix) );
-
-        skyType = 2.0;
-        gl.uniform1f(gl.getUniformLocation(program, "vSkyType"), skyType);
-        gl.drawArrays(gl.TRIANGLES, 0, pointsArray.length);
-        gl.depthMask(true);
-        // pointsArray = [];
-        // colorsArray = [];
-        skyType = 0.0;
+        setCube();
     }
     gl.uniform1f(gl.getUniformLocation(program, "vSkyType"), skyType);
 
@@ -558,18 +506,15 @@ function processData() {
     if(!hoodCamera) {
         eye = eyeCoords;
         viewMatrix = lookAt(eye, at , up);
-        // console.log(viewMatrix);
         if(cameraMoving && !hoodCamera) {
             alpha -= 3.0;
             alphaY += tY;
             if(alphaY <= -0.25 || alphaY >= 0.25) {
                 tY = tY * -1;
             }
-        //console.log(alpha);
         }
         viewMatrix = mult(viewMatrix, rotateY(alpha));
         viewMatrix = mult(viewMatrix, translate(0, alphaY, 0));
-        //console.log(viewMatrix);
     
         gl.uniformMatrix4fv(viewMatrixLoc, false, flatten(viewMatrix) );
     }
@@ -615,8 +560,6 @@ function render() {
     if(isBusy == false) {
         if(isObjectLoaded == objectLoadCap && isMaterialLoaded == materialLoadCap) {
             processData();
-            // isBusy = true;
-            // keepRender = true;
         }
         else if(isMaterialLoaded == 0) {
             loadFile("https://web.cs.wpi.edu/~jmcuneo/cs4731/project3_1/street.mtl", "MTL");
@@ -632,7 +575,6 @@ function render() {
         }
         else if(isMaterialLoaded == 4) {
             loadFile("https://web.cs.wpi.edu/~jmcuneo/cs4731/project3_1/stopsign.mtl", "MTL");
-            //configureCubeMap();
             configureCubeMapImage(skyIMG1, skyIMG2, skyIMG3, skyIMG4, skyIMG5, skyIMG6);
         }
         else if(isObjectLoaded == 0) {
