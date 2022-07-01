@@ -31,6 +31,7 @@ var shadowOn = false;
 var sm;
 var hoodCamera = false;
 var engageCarMove = false;
+var shadowColor = vec4(0.0, 0.0, 0.0, 1.0);
 
 var texture;
 
@@ -109,7 +110,7 @@ function main() {
     aspect = canvas.width/canvas.height;
     sm = mat4();
     sm[3][3] = 0;
-    sm[3][2] = -1/lightPosition[1];
+    sm[3][1] = -1/lightPosition[1];
 
     gl.enable(gl.DEPTH_TEST);
     gl.enable(gl.CULL_FACE);
@@ -239,6 +240,13 @@ function setObjects() {
         
                     gl.vertexAttribPointer(rPosition, 4, gl.FLOAT, false, 0, 0);
                     gl.enableVertexAttribArray(rPosition);
+
+                    gl.uniform4fv(gl.getUniformLocation(program, "lightDiffuse"), flatten(shadowColor));
+                    gl.uniform4fv(gl.getUniformLocation(program, "materialDiffuse"), flatten(shadowColor));
+                    gl.uniform4fv(gl.getUniformLocation(program, "lightSpecular"), flatten(shadowColor));
+                    gl.uniform4fv(gl.getUniformLocation(program, "materialSpecular"), flatten(shadowColor));
+                    gl.uniform4fv(gl.getUniformLocation(program, "lightAmbient"), flatten(shadowColor));
+                    gl.uniform4fv(gl.getUniformLocation(program, "materialAmbient"), flatten(shadowColor));
 
                     viewMatrixLoc = gl.getUniformLocation( program, "viewMatrix" );
                     gl.uniformMatrix4fv(viewMatrixLoc, false, flatten(viewMatrix2));
