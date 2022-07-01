@@ -243,7 +243,7 @@ function setObjects() {
                     viewMatrixLoc = gl.getUniformLocation( program, "viewMatrix" );
                     gl.uniformMatrix4fv(viewMatrixLoc, false, flatten(viewMatrix2));
                     gl.uniform1f(gl.getUniformLocation(program, "vShadows"), vShadows);
-                    gl.drawArrays(gl.TRIANGLES, 0, flatten(key[1]).length);
+                    gl.drawArrays(gl.TRIANGLES, 0, key[1].length);
                     vShadows = 0.0;
                 }
             }
