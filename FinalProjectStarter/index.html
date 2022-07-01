@@ -17,23 +17,29 @@
             
             varying float vReflectType;
             varying float vRefractType;
-            varying vec3 L, N, V;
+            varying vec3 L, N, V, E, H;
             varying vec2 fTexCoord;
             varying vec3 refl;
             varying vec4 dColor;
 
             void main() {
                 vec3 pos = (viewMatrix * vPosition).xyz;
-                L = normalize(lightPosition.xyz - pos);
+
+                if(lightPosition.w == 0.0) L = normalize(lightPosition.xyz);
+                else L = normalize( lightPosition.xyz - pos );
+
+                E = -normalize( pos );
+
+                H = normalize( L + E );
 
                 N = normalize(viewMatrix * vNormal).xyz;
 
                 V = normalize(-pos);
 
-                if(vRefractType == 1.0) {
+                if(vRefractType >= 0.5) {
                     refl = refract(pos, N, 0.95);
                 }
-                if(vReflectType == 1.0) {
+                if(vReflectType >= 0.5) {
                     refl = reflect(pos, N);
                 }
 
@@ -46,7 +52,7 @@
         <script id="fshader" type="x-shader/x-fragment">
             precision mediump float;
 
-            varying vec3 L, N, V;
+            varying vec3 L, N, V, E, H;
             varying vec2 fTexCoord;
             varying vec3 refl;
             varying vec4 dColor;
@@ -57,6 +63,7 @@
             uniform vec4 materialAmbient, materialDiffuse, materialSpecular;
             uniform float shininess;
             uniform sampler2D texture;
+            uniform sampler2D tex1;
             uniform float vStopSign;
             uniform float vSkyType;
             uniform samplerCube texMap;
@@ -71,18 +78,26 @@
                 vec4 diffuse = diffuseProduct * dot(L, N);
                 vec4 ambient = ambientProduct;
                 vec4 specular = specularProduct * pow(max(dot(V, R), 0.0), shininess);
+
+                if(vRefractType >= 0.5 || vReflectType >= 0.5) {
+                    float Kd = max( dot(L, N), 0.0 );
+                    diffuse = Kd*diffuseProduct;
+                
+                    float Ks = pow( max(dot(N, H), 0.0), shininess );
+                    specular = Ks * specularProduct;
+                }
             
                 vec4 fColor = diffuse + specular + ambient;
                 fColor.a = 1.0;
 
-                if(vRefractType == 1.0 || vReflectType == 1.0) {
+                if(vRefractType >= 0.5 || vReflectType >= 0.5) {
                     vec4 texColor = textureCube(texMap, refl);
                     gl_FragColor = fColor*texColor;
                 }
-                if(vSkyType == 2.0) {
-                    gl_FragColor = dColor;
+                if(vSkyType >= 1.5) {
+                    gl_FragColor = texture2D(tex1, fTexCoord);
                 }
-                else if(vStopSign == 1.0) {
+                else if(vStopSign >= 0.5) {
                     gl_FragColor = texture2D(texture, fTexCoord) * fColor;
                 }
                 else {

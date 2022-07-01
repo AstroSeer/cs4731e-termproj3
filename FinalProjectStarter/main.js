@@ -224,6 +224,7 @@ function main() {
     projectionMatrixLoc = gl.getUniformLocation( program, "projectionMatrix" );
     projectionMatrix = perspective(fov, aspect, near, far);
     gl.uniformMatrix4fv(projectionMatrixLoc, false, flatten(projectionMatrix) );
+    setCube();
     render();
 }
 
@@ -504,7 +505,7 @@ function configureCubeMapImage(i1, i2, i3, i4, i5, i6) {
     gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
     gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 
-    gl.uniform1i(gl.getUniformLocation(program, "texMap"), 3);
+    gl.uniform1i(gl.getUniformLocation(program, "texMap"), 2);
 }
 
 function processData() {
@@ -514,12 +515,11 @@ function processData() {
     if(skyBoxOn) {
         console.log("skyBoxOn is activated");
         gl.depthMask(false);
-        setCube();
-        console.log(pointsArray);
-        var cubeTransformMatrix = scalem(100, 100, 100);
+        // console.log(pointsArray);
+        var cubeTransformMatrix = scalem(25, 25, 25);
         // console.log(cubeTransformMatrix);
-        console.log(colorsArray);
-        console.log("----------------");
+        // console.log(colorsArray);
+        // console.log("----------------");
         var boxModelMatrix = gl.getUniformLocation(program, "modelMatrix");
         gl.uniformMatrix4fv(boxModelMatrix, false, flatten(cubeTransformMatrix));
 
@@ -539,12 +539,22 @@ function processData() {
         gl.vertexAttribPointer(rPosition, 4, gl.FLOAT, false, 0, 0);
         gl.enableVertexAttribArray(rPosition);
 
+        var tBuffer = gl.createBuffer();
+        gl.bindBuffer( gl.ARRAY_BUFFER, tBuffer );
+        gl.bufferData( gl.ARRAY_BUFFER, flatten(texCoordsArray), gl.STATIC_DRAW );
+    
+        var vTexCoord = gl.getAttribLocation( program, "vTexCoord" );
+        gl.vertexAttribPointer( vTexCoord, 2, gl.FLOAT, false, 0, 0 );
+        gl.enableVertexAttribArray( vTexCoord );
+
+        configureTexture1(skyIMG6);
+
         skyType = 2.0;
         gl.uniform1f(gl.getUniformLocation(program, "vSkyType"), skyType);
-        gl.drawArrays(gl.TRIANGLES, 0, flatten(pointsArray));
+        gl.drawArrays(gl.TRIANGLES, 0, pointsArray.length);
         gl.depthMask(true);
-        pointsArray = [];
-        colorsArray = [];
+        // pointsArray = [];
+        // colorsArray = [];
         skyType = 0.0;
     }
     gl.uniform1f(gl.getUniformLocation(program, "vSkyType"), skyType);
@@ -633,7 +643,7 @@ function render() {
         }
         else if(isMaterialLoaded == 4) {
             loadFile("https://web.cs.wpi.edu/~jmcuneo/cs4731/project3_1/stopsign.mtl", "MTL");
-            configureCubeMap();
+            //configureCubeMap();
             configureCubeMapImage(skyIMG1, skyIMG2, skyIMG3, skyIMG4, skyIMG5, skyIMG6);
         }
         else if(isObjectLoaded == 0) {
