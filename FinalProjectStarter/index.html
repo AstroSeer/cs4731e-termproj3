@@ -25,8 +25,9 @@
             void main() {
                 vec3 pos = (viewMatrix * vPosition).xyz;
 
-                if(lightPosition.w == 0.0) L = normalize(lightPosition.xyz);
+                if(lightPosition.w == 0.0 && (vReflectType >= 0.5 || vRefractType >= 0.5)) L = normalize(lightPosition.xyz);
                 else L = normalize( lightPosition.xyz - pos );
+                L = normalize( lightPosition.xyz - pos );
 
                 E = -normalize( pos );
 
@@ -97,7 +98,7 @@
                 if(vSkyType >= 1.5) {
                     gl_FragColor = texture2D(tex1, fTexCoord);
                 }
-                else if(vStopSign >= 0.5) {
+                else if(vStopSign >= 1.0) {
                     gl_FragColor = texture2D(texture, fTexCoord) * fColor;
                 }
                 else {

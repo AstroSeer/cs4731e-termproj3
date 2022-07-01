@@ -83,7 +83,7 @@ var maxT = 1.0;
 var keepRender = false;
 
 var lightOn = true;
-var lightPosition = vec4( 0.0, 2.0, 0.0, 0.0 ); 
+var lightPosition = vec4( 0.0, 3.0, 0.0, 0.0 ); 
 var lightAmbient = vec4( 0.2, 0.2, 0.2, 1.0 );
 var lightDiffuse = vec4( 1.0, 1.0, 1.0, 1.0 );
 var lightSpecular = vec4( 1.0, 1.0, 1.0, 1.0 );
@@ -301,8 +301,8 @@ function setObjects() {
                     transformMatrix = translate(0, 0, 0);
                     break;
                 case 1:
-                    transformMatrix = translate(moveCar[0], -0.25, moveCar[1]);
-                    transformMatrix = mult(transformMatrix, rotateY(rot));
+                    transformMatrix = translate(2.85, -0.25, 0.0);
+                    transformMatrix = mult( rotateY(rot), transformMatrix);
                     parentMatrix.push(transformMatrix);
                     if(reflectCar) {
                         console.log("reflecting car");
@@ -314,9 +314,9 @@ function setObjects() {
                     transformMatrix = mult(parentMatrix[0], translate(0.2, 0.70, 1.5));
                     parentMatrix.push(transformMatrix);
                     if(hoodCamera) {
-                        viewMatrix = parentMatrix[0];
-                        viewMatrix = mult(viewMatrix, rotateY(180));
-                        viewMatrix = mult(viewMatrix, translate(-0.2, -0.4, -1.0));
+                        viewMatrix = inverse4(parentMatrix[0]);
+                        viewMatrix = mult(rotateY(180), viewMatrix);
+                        viewMatrix = mult(viewMatrix, translate(-0.2, -0.9, -1.0));
                     }
                     if(refractBunny) {
                         console.log("refracting bunny");
@@ -329,7 +329,7 @@ function setObjects() {
                     transformMatrix = translate(0, 0, 0);
                     break;
                 case 4:
-                    transformMatrix = translate(-1, 0, -4.25);
+                    transformMatrix = translate(-1, 0, 4.25);
                     break;
             }
             gl.uniformMatrix4fv(modelMatrix, false, flatten(transformMatrix));
@@ -374,42 +374,7 @@ function setObjects() {
         }
     }
     if(engageCarMove) {
-        if(moveCar[0] >= 2.8 && moveCar[1] >= 2.8) {
-            rot = rot - 90;
-            moveCar[0] = moveCar[0] - 0.2;
-            directionCar = 2;
-        }
-        else if(moveCar[0] <= -2.8 && moveCar[1] >= 2.8) {
-            rot = rot - 90;
-            moveCar[1] = moveCar[1] - 0.2;
-            directionCar = 3;
-        }
-        else if(moveCar[0] <= -2.8 && moveCar[1] <= -2.8) {
-            rot = rot - 90;
-            moveCar[0] = moveCar[0] + 0.2;
-            directionCar = 4;
-        }
-        else if(moveCar[0] >= 2.8 && moveCar[1] <= -2.8) {
-            rot = rot - 90;
-            moveCar[1] = moveCar[1] + 0.2;
-            directionCar = 1;
-        }
-        else {
-            switch(directionCar) {
-                case 1:
-                    moveCar[1] = moveCar[1] + 0.1;
-                    break;
-                case 2:
-                    moveCar[0] = moveCar[0] - 0.1;
-                    break;
-                case 3:
-                    moveCar[1] = moveCar[1] - 0.1;
-                    break;
-                case 4:
-                    moveCar[0] = moveCar[0] + 0.1;
-                    break;
-            }
-        }
+        rot -= 2.0;
     }
     // console.log(moveCar);
     // console.log(directionCar);
@@ -449,32 +414,7 @@ window.addEventListener("keypress", function(event) {
     }
 });
 
-function configureCubeMap() {
-    console.log("in cubeMap config");
-    //Initialize
-    cubeMap = gl.createTexture();
-    gl.activeTexture(gl.TEXTURE2);
-    gl.bindTexture(gl.TEXTURE_CUBE_MAP, cubeMap);
-
-    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-
-    //Create a 2x2 texture
-    gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, black);
-    gl.texImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_X, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, black);
-    gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Y, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, black);
-    gl.texImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, black);
-    gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Z, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, black);
-    gl.texImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, black);
-
-
-    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-
-    gl.uniform1i(gl.getUniformLocation(program, "texMap"), 2);
-}
-
-function setCube() {
+function setCube() { // draw here and do texture per face
    quad( 1, 0, 3, 2 );
    quad( 2, 3, 7, 6 );
    quad( 3, 0, 4, 7 );
@@ -485,10 +425,11 @@ function setCube() {
 
 function configureCubeMapImage(i1, i2, i3, i4, i5, i6) {
 
+    console.log(i1);
     //console.log(image);
     //Initialize
     cubeMap = gl.createTexture();
-    gl.activeTexture(gl.TEXTURE3);
+    gl.activeTexture(gl.TEXTURE2);
     gl.bindTexture(gl.TEXTURE_CUBE_MAP, cubeMap);
 
     gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
